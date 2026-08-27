@@ -1,0 +1,139 @@
+import streamlit as st
+import google.generativeai as genai
+from duckduckgo_search import DDGS
+from utils.sidebar import render_sidebar
+
+st.set_page_config(
+    page_title="UpCareer AI - Autonomous AI Agent",
+    page_icon="🤖",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+render_sidebar()
+
+# ── Header ────────────────────────────────────────────────────────────────────
+st.markdown("""
+<div style='padding:2rem 0 1.4rem 0;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:1.8rem;'>
+    <div style='display:inline-flex;align-items:center;gap:0.4rem;background:rgba(72,199,142,0.10);
+        border:1px solid rgba(72,199,142,0.25);border-radius:20px;padding:0.22rem 0.75rem;
+        font-size:0.8rem;font-weight:600;color:#48C78E;margin-bottom:0.6rem;'>
+        ⚡ &nbsp;Autonomous Agent Mode Active (With Live Web Search)
+    </div>
+    <div style='font-family:Outfit,sans-serif;font-size:2rem;font-weight:800;color:#FFFFFF;
+        letter-spacing:-0.5px;margin:0 0 0.4rem 0;'>
+        AI Career Agent
+    </div>
+    <div style='font-size:0.84rem;color:#888;max-width:650px;line-height:1.6;'>
+        This agent manages your profile and can browse the live web for courses, tutorials, and resources.
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+if not st.session_state.get("analysis_complete", False):
+    st.warning("⚠️ No resume profile found! Please run your analysis on the **Resume Analysis** page first.")
+    st.stop()
+
+# ── Initialize Gemini Client ──────────────────────────────────────────────────
+api_key = st.secrets.get("GEMINI_API_KEY")
+if not api_key:
+    st.error("❌ Missing `GEMINI_API_KEY` in your `.streamlit/secrets.toml` file.")
+    st.stop()
+
+genai.configure(api_key=api_key)
+
+# ── Define Agent Tools (Python functions) ────────────────────────────────────
+def tool_update_target_role(new_role: str) -> str:
+    """Updates the user's target career role in session memory."""
+    st.session_state["target_role"] = new_role
+    return f"Successfully updated target role to {new_role}."
+
+def tool_graduate_skill(skill_name: str) -> str:
+    """Moves a specified skill from missing/partial into mastered state and boosts readiness."""
+    match_res = st.session_state.get("match_results", {})
+    evaluated = match_res.get("evaluated", {"mastered": [], "partial": [], "missing": []})
+    
+    skill_clean = skill_name.strip().title()
+    
+    evaluated["missing"] = [s for s in evaluated.get("missing", []) if (str(s[0]).title() if isinstance(s, (list,tuple)) else str(s).title()) != skill_clean]
+    evaluated["partial"] = [s for s in evaluated.get("partial", []) if (str(s[0]).title() if isinstance(s, (list,tuple)) else str(s).title()) != skill_clean]
+    
+    mastered = evaluated.get("mastered", [])
+    if not any((str(s[0]).title() if isinstance(s, (list,tuple)) else str(s).title()) == skill_clean for s in mastered):
+        mastered.append((skill_clean, 0.95))
+        evaluated["mastered"] = mastered
+        
+    st.session_state["skills_present"] = len(mastered)
+    st.session_state["skills_partial"] = len(evaluated["partial"])
+    st.session_state["skills_missing"] = len(evaluated["missing"])
+    
+    current_score = st.session_state.get("readiness_score", 50)
+    st.session_state["readiness_score"] = min(100, current_score + 8)
+    
+    return f"Skill '{skill_clean}' has been successfully graduated to Mastered! Readiness score boosted."
+
+def tool_search_web(query: str) -> str:
+    """Searches the live web using DuckDuckGo for courses, tutorials, documentation, and career resources."""
+    try:
+        results = DDGS().text(query, max_results=3)
+        formatted = []
+        for r in results:
+            formatted.append(f"Title: {r.get('title')}\nURL: {r.get('href')}\nSnippet: {r.get('body')}\n")
+        return "\n".join(formatted) if formatted else "No live web results found."
+    except Exception as e:
+        return f"Web search error: {e}"
+
+# Configure Model with All Three Tools
+model = genai.GenerativeModel(
+    model_name="gemini-3.6-flash",
+    tools=[tool_update_target_role, tool_graduate_skill, tool_search_web]
+)
+
+# Fetch User Context
+target_role = st.session_state.get("target_role", "Software Engineer")
+readiness_score = st.session_state.get("readiness_score", 0)
+evaluated = st.session_state["match_results"]["evaluated"]
+
+def extract_skill_names(skill_list):
+    return [str(s[0]).title() if isinstance(s, (tuple, list)) else str(s).title() for s in skill_list]
+
+missing_skills = extract_skill_names(evaluated.get("missing", []))
+partial_skills = extract_skill_names(evaluated.get("partial", []))
+
+system_instruction = f"""
+You are an autonomous AI Career Agent with full control over the user's application state and live web browsing tools.
+Current User Context:
+- Target Role: {target_role}
+- Readiness Score: {readiness_score}/100
+- Missing Skills: {", ".join(missing_skills) if missing_skills else "None"}
+- Partial Skills: {", ".join(partial_skills) if partial_skills else "None"}
+
+If the user asks to change their target role or graduate a skill, call the appropriate tool. If they ask for courses, tutorials, or learning resources to close their missing skills, use the `tool_search_web` function to fetch real-world results from the internet and present them clearly with links.
+"""
+
+# Initialize Chat
+if "agent_chat" not in st.session_state:
+    st.session_state["agent_chat"] = model.start_chat(enable_automatic_function_calling=True)
+    st.session_state["agent_chat"].send_message(system_instruction)
+
+# Display history
+history = st.session_state["agent_chat"].history
+for message in history[1:]: 
+    role = "user" if message.role == "user" else "assistant"
+    with st.chat_message(role):
+        for part in message.parts:
+            if part.text:
+                st.markdown(part.text)
+
+# User Input Loop
+if user_input := st.chat_input("Ask your agent to search the web or manage your profile..."):
+    with st.chat_message("user"):
+        st.markdown(user_input)
+        
+    with st.chat_message("assistant"):
+        with st.spinner("Agent is searching the web / executing tools..."):
+            try:
+                response = st.session_state["agent_chat"].send_message(user_input)
+                st.markdown(response.text)
+            except Exception as e:
+                st.error(f"Agent execution error: {e}")

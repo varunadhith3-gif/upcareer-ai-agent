@@ -1,0 +1,9 @@
+John Doe
+Software Engineer
+Experience:
+- 3 years as a Backend Developer
+- Built scalable APIs using Python and Django.
+- Managed deployments using Docker and Kubernetes.
+Education:
+- B.S. in Computer Science
+Skills: Python, Django, Docker, SQL, Git, REST APIs, System Design.

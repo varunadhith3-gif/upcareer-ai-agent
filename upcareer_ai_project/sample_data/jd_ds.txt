@@ -1,0 +1,8 @@
+Job Title: Lead Data Scientist
+Requirements:
+- Experience in building and deploying Machine Learning models.
+- Strong Python programming skills.
+- Proficiency in Deep Learning frameworks like PyTorch or TensorFlow.
+- Experience with Transformers & LLMs is highly desired.
+- Strong background in Linear Algebra and Statistics.
+- Familiarity with Data Engineering pipelines.

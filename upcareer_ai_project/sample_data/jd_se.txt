@@ -1,0 +1,8 @@
+Job Title: Senior Software Engineer
+Requirements:
+- 5+ years of experience in software development.
+- Strong proficiency in Python, Java, or C++.
+- Experience with Cloud platforms (AWS or GCP).
+- Familiarity with CI/CD, Kubernetes, and Docker.
+- Deep understanding of Data Structures, Algorithms, and System Design.
+- Knowledge of MLOps & Deployment is a plus.

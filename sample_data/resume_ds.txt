@@ -1,0 +1,10 @@
+Jane Smith
+Data Scientist
+Experience:
+- 2 years Data Analyst
+- 1 year Machine Learning Engineer
+- Developed predictive models using Python, scikit-learn, and pandas.
+- Familiar with SQL and data visualization.
+Education:
+- M.S. in Statistics
+Skills: Python, Machine Learning, scikit-learn, pandas, Data Analysis, SQL.
