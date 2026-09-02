@@ -3,6 +3,8 @@ import plotly.graph_objects as go
 import json
 import os
 import hashlib
+from streamlit_oauth import OAuth2Component
+import base64
 from utils.sidebar import render_sidebar
 
 st.set_page_config(
@@ -49,8 +51,37 @@ if not st.session_state["logged_in"]:
     
     col1, col2, col3 = st.columns([1, 4, 1])
     with col2:
-        # Placeholder for real Google Auth
-        st.markdown('<div class="google-btn">🌐 Continue with Google (Requires Cloud API)</div>', unsafe_allow_html=True)
+        # Initialize the OAuth configuration
+        oauth2 = OAuth2Component(
+            st.secrets["GOOGLE_CLIENT_ID"],
+            st.secrets["GOOGLE_CLIENT_SECRET"],
+            "https://accounts.google.com/o/oauth2/v2/auth",
+            "https://oauth2.googleapis.com/token"
+        )
+        
+        # Render the working Google login button
+        result = oauth2.authorize_button(
+            name="🌐 Continue with Google",
+            redirect_uri=st.secrets["GOOGLE_REDIRECT_URI"],
+            scope="openid email profile",
+            key="google_login",
+            use_container_width=True
+        )
+        
+        # Handle successful authentication
+        if result and "token" in result:
+            st.session_state["logged_in"] = True
+            
+            # Decode Google's returned token to extract the user's email and name
+            id_token = result["token"]["id_token"]
+            payload = id_token.split(".")[1]
+            payload += "=" * ((4 - len(payload) % 4) % 4) # Fix padding
+            user_info = json.loads(base64.b64decode(payload))
+            
+            st.session_state["user_email"] = user_info.get("email")
+            st.session_state["user_name"] = user_info.get("given_name", "User")
+            st.rerun()
+
         st.markdown('<div class="divider">OR USE EMAIL</div>', unsafe_allow_html=True)
         
         tab1, tab2 = st.tabs(["Sign In", "Create Account"])
