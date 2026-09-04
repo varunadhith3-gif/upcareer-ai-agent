@@ -1,5 +1,7 @@
 import streamlit as st
 import plotly.graph_objects as go
+import google.generativeai as genai
+import json
 from utils.sidebar import render_sidebar
 
 st.set_page_config(
@@ -17,9 +19,44 @@ def _badge(score: int) -> tuple[str, str]:
     elif score >= 40: return "Fair", "#FF9800"
     else: return "Early Stage", "#FF5252"
 
-# ── Force explicitly pull live variables ──────────────────────────────────────
-has_data       = st.session_state.get("analysis_complete", False)
-role           = st.session_state.get("target_role", "Target Role")
+# ── 1. AGENT TOOL: Dynamic Score Recalculation ────────────────────────────────
+def evaluate_role_fit(resume_text, target_role):
+    """Calls Gemini to recalculate scores based on the new target role."""
+    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+    model = genai.GenerativeModel('gemini-pro')
+    
+    prompt = f"""
+    You are an expert AI Career Coach. Analyze the following resume against the industry requirements for a {target_role}.
+    Return ONLY a valid JSON object with this exact structure (do not include markdown formatting or backticks):
+    {{
+        "readiness_score": 75,
+        "category_scores": {{"Skills": 80, "Experience": 70, "Projects": 60, "Education": 90, "Certifications": 50}}
+    }}
+    Resume text: {resume_text}
+    """
+    try:
+        response = model.generate_content(prompt)
+        clean_json = response.text.replace("```json", "").replace("```", "").strip()
+        return json.loads(clean_json)
+    except Exception as e:
+        return None
+
+# ── 2. SMART STATE CHECK ──────────────────────────────────────────────────────
+has_data = st.session_state.get("analysis_complete", False)
+role = st.session_state.get("target_role", "Target Role")
+resume_text = st.session_state.get("resume_text", "")
+
+# If the user changed the role, force the Agent to recalculate before rendering the page!
+if has_data and resume_text and st.session_state.get("last_evaluated_role") != role:
+    with st.spinner(f"Agent analyzing skill gaps for {role}..."):
+        new_data = evaluate_role_fit(resume_text, role)
+        if new_data:
+            st.session_state["readiness_score"] = new_data["readiness_score"]
+            st.session_state["category_scores"] = new_data["category_scores"]
+            st.session_state["last_evaluated_role"] = role
+            st.rerun() # Refresh the page with the new numbers
+
+# Pull live variables for UI
 score          = st.session_state.get("readiness_score", 0)
 cats           = st.session_state.get("category_scores", {})
 user_name      = st.session_state.get("user_name", "Candidate")
@@ -30,6 +67,7 @@ jd_skills      = match_results.get("jd_skills", [])
 
 badge_label, badge_color = _badge(score)
 
+# ── 3. RENDER UI ──────────────────────────────────────────────────────────────
 hdr_left, hdr_right = st.columns([3, 1], gap="small")
 
 with hdr_left:
@@ -37,7 +75,7 @@ with hdr_left:
         "<div style='padding:1.8rem 0 0.3rem 0;'>"
         "<div style='display:inline-flex;align-items:center;gap:0.4rem; background:rgba(255,193,7,0.10);border:1px solid rgba(255,193,7,0.25); border-radius:20px;padding:0.22rem 0.75rem;font-size:0.8rem;font-weight:600; color:#FFC107;margin-bottom:0.5rem;'>🎯 &nbsp;Skill Gap Analysis</div>"
         "<div style='font-family:Outfit,sans-serif;font-size:2rem;font-weight:800; color:#FFFFFF;letter-spacing:-0.5px;margin:0 0 0.3rem 0;'>Skill Gap Report</div>"
-        f"<div style='font-size:0.84rem;color:#888;line-height:1.6;'><strong style='color:#DDD;'>{role}</strong> &nbsp;·&nbsp; Live data sync enabled.</div></div>",
+        f"<div style='font-size:0.84rem;color:#888;line-height:1.6;'><strong style='color:#DDD;'>{role}</strong> &nbsp;·&nbsp; Live AI evaluation enabled.</div></div>",
         unsafe_allow_html=True,
     )
 
@@ -96,7 +134,7 @@ with col_gauge:
     ))
     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=260, margin=dict(t=30, b=10, l=20, r=20))
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
-    st.markdown("<div style='font-size:0.73rem;color:#555;text-align:center; margin-top:-0.6rem;font-style:italic;padding-bottom:1rem;'>Live estimate updated via Roadmap</div></div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-size:0.73rem;color:#555;text-align:center; margin-top:-0.6rem;font-style:italic;padding-bottom:1rem;'>Live estimate updated via AI Agent</div></div>", unsafe_allow_html=True)
 
 with col_breakdown:
     cat_meta = {"Skills": "🛠️", "Experience": "💼", "Projects": "🗂️", "Education": "🎓", "Certifications": "📜"}

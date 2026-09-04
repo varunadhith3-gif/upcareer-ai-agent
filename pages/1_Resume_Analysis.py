@@ -131,36 +131,51 @@ with col_left:
         unsafe_allow_html=True,
     )
 
-    uploaded_file = st.file_uploader(
-        label="Resume file",
-        type=["pdf", "docx", "txt"],
-        accept_multiple_files=False,
-        label_visibility="collapsed",
-        key="resume_file_upload",
-        help="Accepted formats: PDF, DOCX, TXT · max one file",
-    )
+    # 1. State lock for uploader visibility
+    if "uploader_visible" not in st.session_state:
+        st.session_state["uploader_visible"] = (st.session_state.get("_last_uploaded_name") is None)
 
-    # Upload zone annotation (shown when no file is uploaded)
-    if not uploaded_file:
-        st.markdown(
-            "<div style='text-align:center;color:#666;font-size:0.78rem;margin-top:-0.4rem;"
-            "margin-bottom:0.6rem;'>☁️ Drag and drop your resume, or click to browse"
-            "<br><span style='color:#444;'>Accepted formats: PDF · DOCX · TXT &nbsp;·&nbsp; max one file</span></div>",
-            unsafe_allow_html=True,
+    if st.session_state["uploader_visible"]:
+        uploaded_file = st.file_uploader(
+            label="Resume file",
+            type=["pdf", "docx", "txt"],
+            accept_multiple_files=False,
+            label_visibility="collapsed",
+            key="resume_file_upload",
+            help="Accepted formats: PDF, DOCX, TXT · max one file",
         )
 
-    # ── Extract text on upload ────────────────────────────────────────────────
-    if uploaded_file is not None:
-        file_bytes = io.BytesIO(uploaded_file.read())
-        try:
-            from core.parser import parse_document
-            extracted_raw = parse_document(file_bytes, filename=uploaded_file.name)
-            if st.session_state.get("_last_uploaded_name") != uploaded_file.name:
+        if not uploaded_file:
+            st.markdown(
+                "<div style='text-align:center;color:#666;font-size:0.78rem;margin-top:-0.4rem;"
+                "margin-bottom:0.6rem;'>☁️ Drag and drop your resume, or click to browse"
+                "<br><span style='color:#444;'>Accepted formats: PDF · DOCX · TXT &nbsp;·&nbsp; max one file</span></div>",
+                unsafe_allow_html=True,
+            )
+        else:
+            # File just uploaded
+            file_bytes = io.BytesIO(uploaded_file.read())
+            try:
+                from core.parser import parse_document
+                extracted_raw = parse_document(file_bytes, filename=uploaded_file.name)
                 st.session_state["resume_text_area"] = extracted_raw
                 st.session_state["_last_uploaded_name"] = uploaded_file.name
-            st.success(f"✅ Parsed **{uploaded_file.name}** — {len(extracted_raw.split())} words extracted.")
-        except Exception as exc:
-            st.error(f"⚠️ Could not parse file: {exc}")
+                st.session_state["uploader_visible"] = False # Lock the UI
+                st.rerun() # Refresh to show locked state
+            except Exception as exc:
+                st.error(f"⚠️ Could not parse file: {exc}")
+    else:
+        # 2. File is already loaded in memory
+        st.markdown(
+            f"<div style='background:rgba(72,199,142,0.1); border:1px solid rgba(72,199,142,0.3); border-radius:10px; padding:0.8rem 1rem; margin-bottom:1rem;'>"
+            f"<div style='color:#48C78E; font-size:0.85rem; font-weight:600;'>✅ Currently loaded:</div>"
+            f"<div style='color:#FFF; font-weight:700; font-size:1rem; margin-top:0.2rem;'>{st.session_state['_last_uploaded_name']}</div>"
+            f"</div>",
+            unsafe_allow_html=True
+        )
+        if st.button("🔄 Upload a New Resume", use_container_width=True):
+            st.session_state["uploader_visible"] = True
+            st.rerun()
 
     # ── Editable text area ────────────────────────────────────────────────────
     st.markdown(
@@ -175,7 +190,7 @@ with col_left:
         height=320,
         placeholder="Extracted text appears here — or paste your resume text directly.",
         label_visibility="collapsed",
-        key="resume_text_area",
+        key="resume_text_area", # Automatically syncs with st.session_state
     )
 
 # ══════════════════════════════════════════════════════════════════════════════
@@ -338,65 +353,67 @@ if analyze_clicked:
                 st.error(f"❌ Pipeline error: {exc}")
                 st.stop()
 
-        # ── Results summary ────────────────────────────────────────────────────
-        evaluated   = st.session_state["match_results"]["evaluated"]
-        n_mastered  = len(evaluated["mastered"])
-        n_partial   = len(evaluated["partial"])
-        n_missing   = len(evaluated["missing"])
-        readiness   = st.session_state["readiness_score"]
+# Render results persistently across page reloads!
+if st.session_state.get("analysis_complete"):
+    evaluated   = st.session_state["match_results"]["evaluated"]
+    n_mastered  = len(evaluated["mastered"])
+    n_partial   = len(evaluated["partial"])
+    n_missing   = len(evaluated["missing"])
+    readiness   = st.session_state["readiness_score"]
+    selected_role_state = st.session_state["target_role"]
 
-        # Success banner
-        st.markdown(
-            "<div style='background:rgba(72,199,142,0.08);border:1px solid rgba(72,199,142,0.25);"
-            "border-radius:14px;padding:1.2rem 1.4rem;margin-top:1.4rem;'>"
-            "<div style='font-family:Outfit,sans-serif;font-size:1.05rem;font-weight:700;"
-            "color:#48C78E;margin-bottom:0.4rem;'>✅ Analysis complete!</div>"
-            "<div style='font-size:0.82rem;color:#999;line-height:1.6;'>"
-            f"Readiness score: <strong style='color:#FFC107;'>{readiness}/100</strong> &nbsp;·&nbsp; "
-            f"Role: <strong style='color:#FFF;'>{selected_role}</strong>"
-            "</div></div>",
-            unsafe_allow_html=True,
-        )
+    # Success banner
+    st.markdown(
+        "<div style='background:rgba(72,199,142,0.08);border:1px solid rgba(72,199,142,0.25);"
+        "border-radius:14px;padding:1.2rem 1.4rem;margin-top:1.4rem;'>"
+        "<div style='font-family:Outfit,sans-serif;font-size:1.05rem;font-weight:700;"
+        "color:#48C78E;margin-bottom:0.4rem;'>✅ Analysis complete!</div>"
+        "<div style='font-size:0.82rem;color:#999;line-height:1.6;'>"
+        f"Readiness score: <strong style='color:#FFC107;'>{readiness}/100</strong> &nbsp;·&nbsp; "
+        f"Role: <strong style='color:#FFF;'>{selected_role_state}</strong>"
+        "</div></div>",
+        unsafe_allow_html=True,
+    )
 
-        # Three mini stat cards
-        stat_html = (
-            "<div style='display:flex;gap:0.8rem;margin-top:1rem;'>"
+    # Three mini stat cards
+    stat_html = (
+        "<div style='display:flex;gap:0.8rem;margin-top:1rem;'>"
 
-            "<div style='flex:1;background:#161616;border:1px solid rgba(72,199,142,0.22);"
-            "border-radius:12px;padding:1rem 1.1rem;'>"
-            "<div style='font-size:0.72rem;font-weight:600;color:#888;text-transform:uppercase;"
-            "letter-spacing:0.06em;margin-bottom:0.2rem;'>Present</div>"
-            "<div style='font-family:Outfit,sans-serif;font-size:1.8rem;font-weight:800;"
-            "color:#48C78E;line-height:1;'>{m}</div>"
-            "<div style='font-size:0.7rem;color:#555;margin-top:0.15rem;'>Mastered skills</div>"
-            "</div>"
+        "<div style='flex:1;background:#161616;border:1px solid rgba(72,199,142,0.22);"
+        "border-radius:12px;padding:1rem 1.1rem;'>"
+        "<div style='font-size:0.72rem;font-weight:600;color:#888;text-transform:uppercase;"
+        "letter-spacing:0.06em;margin-bottom:0.2rem;'>Present</div>"
+        "<div style='font-family:Outfit,sans-serif;font-size:1.8rem;font-weight:800;"
+        "color:#48C78E;line-height:1;'>{m}</div>"
+        "<div style='font-size:0.7rem;color:#555;margin-top:0.15rem;'>Mastered skills</div>"
+        "</div>"
 
-            "<div style='flex:1;background:#161616;border:1px solid rgba(255,193,7,0.22);"
-            "border-radius:12px;padding:1rem 1.1rem;'>"
-            "<div style='font-size:0.72rem;font-weight:600;color:#888;text-transform:uppercase;"
-            "letter-spacing:0.06em;margin-bottom:0.2rem;'>Partial</div>"
-            "<div style='font-family:Outfit,sans-serif;font-size:1.8rem;font-weight:800;"
-            "color:#FFC107;line-height:1;'>{p}</div>"
-            "<div style='font-size:0.7rem;color:#555;margin-top:0.15rem;'>Gap skills</div>"
-            "</div>"
+        "<div style='flex:1;background:#161616;border:1px solid rgba(255,193,7,0.22);"
+        "border-radius:12px;padding:1rem 1.1rem;'>"
+        "<div style='font-size:0.72rem;font-weight:600;color:#888;text-transform:uppercase;"
+        "letter-spacing:0.06em;margin-bottom:0.2rem;'>Partial</div>"
+        "<div style='font-family:Outfit,sans-serif;font-size:1.8rem;font-weight:800;"
+        "color:#FFC107;line-height:1;'>{p}</div>"
+        "<div style='font-size:0.7rem;color:#555;margin-top:0.15rem;'>Gap skills</div>"
+        "</div>"
 
-            "<div style='flex:1;background:#161616;border:1px solid rgba(255,82,82,0.22);"
-            "border-radius:12px;padding:1rem 1.1rem;'>"
-            "<div style='font-size:0.72rem;font-weight:600;color:#888;text-transform:uppercase;"
-            "letter-spacing:0.06em;margin-bottom:0.2rem;'>Missing</div>"
-            "<div style='font-family:Outfit,sans-serif;font-size:1.8rem;font-weight:800;"
-            "color:#FF5252;line-height:1;'>{x}</div>"
-            "<div style='font-size:0.7rem;color:#555;margin-top:0.15rem;'>Critical gaps</div>"
-            "</div>"
+        "<div style='flex:1;background:#161616;border:1px solid rgba(255,82,82,0.22);"
+        "border-radius:12px;padding:1rem 1.1rem;'>"
+        "<div style='font-size:0.72rem;font-weight:600;color:#888;text-transform:uppercase;"
+        "letter-spacing:0.06em;margin-bottom:0.2rem;'>Missing</div>"
+        "<div style='font-family:Outfit,sans-serif;font-size:1.8rem;font-weight:800;"
+        "color:#FF5252;line-height:1;'>{x}</div>"
+        "<div style='font-size:0.7rem;color:#555;margin-top:0.15rem;'>Critical gaps</div>"
+        "</div>"
 
-            "</div>"
-        ).format(m=n_mastered, p=n_partial, x=n_missing)
-        st.markdown(stat_html, unsafe_allow_html=True)
+        "</div>"
+    ).format(m=n_mastered, p=n_partial, x=n_missing)
+    st.markdown(stat_html, unsafe_allow_html=True)
 
-        # Navigation buttons
-        st.markdown("<div style='height:0.8rem;'></div>", unsafe_allow_html=True)
-        nav_col1, nav_col2 = st.columns(2)
-        with nav_col1:
-            st.page_link("Home.py", label="📊 View Dashboard", icon=None)
-        with nav_col2:
-            st.page_link("pages/2_Skill_Gap_Report.py", label="🎯 Skill Gap Report", icon=None)
+    # Navigation buttons
+    st.markdown("<div style='height:0.8rem;'></div>", unsafe_allow_html=True)
+    nav_col1, nav_col2 = st.columns(2)
+    with nav_col1:
+        st.page_link("Home.py", label="📊 View Dashboard", icon=None)
+    with nav_col2:
+        st.page_link("pages/2_Skill_Gap_Report.py", label="🎯 Skill Gap Report", icon=None)
