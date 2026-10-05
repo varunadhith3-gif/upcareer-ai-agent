@@ -82,14 +82,16 @@ def tool_search_web(query: str) -> str:
     except Exception as e:
         return f"Web search error: {e}"
 
+# Updated to gemini-3.8-flash for current stable support
 model = genai.GenerativeModel(
-    model_name="gemini-3.6-flash",
+    model_name="gemini-3.8-flash",
     tools=[tool_update_target_role, tool_graduate_skill, tool_search_web]
 )
 
 target_role = st.session_state.get("target_role", "Software Engineer")
 readiness_score = st.session_state.get("readiness_score", 0)
-evaluated = st.session_state["match_results"]["evaluated"]
+match_results_data = st.session_state.get("match_results", {})
+evaluated = match_results_data.get("evaluated", {"missing": [], "partial": [], "mastered": []})
 
 def extract_skill_names(skill_list):
     return [str(s[0]).title() if isinstance(s, (tuple, list)) else str(s).title() for s in skill_list]
@@ -113,7 +115,7 @@ if "agent_chat" not in st.session_state:
     try:
         st.session_state["agent_chat"].send_message(system_instruction)
     except Exception as e:
-        st.toast("⚡ API quota reached during mentor initialization. Running in offline fallback mode.", icon="⚠️")
+        st.toast("⚡ API quota reached during mentor initialization. Running in offline fallback mode.", icon="⚠️️")
 
 # Safe history rendering
 try:
@@ -150,10 +152,9 @@ if user_input := st.chat_input("Ask your agent to search the web or manage your 
                             st.warning("⏳ Free tier rate limit hit. Pausing briefly before auto-retrying...")
                             time.sleep(15)
                         else:
-                            # Graceful offline mentor fallback response when quota is fully dead
                             success = True
                             class MockResponse:
-                                text = f"⚠️ **API Quota Exceeded (429)**: The Gemini free tier limit has been reached. However, I can still help you review your target role (**{target_role}**) and missing skills (**{', '.join(missing_skills[:3])}**). Try running web searches or check your Skill Gap Report for offline tracking."
+                                text = f"⚠️ **API Quota Exceeded (429)**: The Gemini free tier limit has been reached. However, I can still help you review your target role (**{target_role}**) and missing skills (**{', '.join(missing_skills[:3])}**)."
                             response = MockResponse()
                     else:
                         success = True
