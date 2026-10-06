@@ -81,6 +81,20 @@ with col_left:
     )
     st.session_state["resume_text"] = editable_resume_text
 
+    st.markdown("<div style='font-family:Outfit,sans-serif;font-size:1rem;font-weight:700;color:#FFFFFF;margin:1.2rem 0 0.5rem 0;'>BIAS & FAIRNESS AUDIT (Stage 6)</div>", unsafe_allow_html=True)
+    if st.button("🔍 Run Fairness Audit", use_container_width=True):
+        resume_content = st.session_state.get("resume_text", "").lower()
+        if not resume_content.strip():
+            st.warning("Please upload a resume first.")
+        else:
+            bias_terms = ["he", "she", "his", "hers", "white", "black", "asian", "christian", "muslim", "older", "younger", "married", "single", "father", "mother", "maternity"]
+            found_flags = [t for t in bias_terms if f" {t} " in f" {resume_content} " or f" {t}." in f" {resume_content} " or f" {t}," in f" {resume_content} "]
+            if found_flags:
+                st.markdown(f"<div style='background:rgba(255,82,82,0.1); border:1px solid #FF5252; border-radius:8px; padding:1rem;'><strong style='color:#FF5252;'>⚠️ Audit Flagged:</strong> Potential demographic proxy phrases detected ({', '.join(found_flags)}). Consider removing them for unbiased evaluation.</div>", unsafe_allow_html=True)
+            else:
+                st.markdown("<div style='background:rgba(72,199,142,0.1); border:1px solid #48C78E; border-radius:8px; padding:1rem;'><strong style='color:#48C78E;'>✅ Audit Passed:</strong> Clean compliance badge earned! No obvious demographic proxies detected.</div>", unsafe_allow_html=True)
+
+
 with col_right:
     st.markdown("<div style='font-family:Outfit,sans-serif;font-size:1.1rem;font-weight:700;color:#FFFFFF;margin-bottom:0.8rem;'>🎯 Target role</div>", unsafe_allow_html=True)
     

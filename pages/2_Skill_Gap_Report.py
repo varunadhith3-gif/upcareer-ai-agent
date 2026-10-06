@@ -264,7 +264,57 @@ with col_breakdown:
     )
     st.markdown(breakdown_html, unsafe_allow_html=True)
 
+st.markdown("<div style='font-family:Outfit,sans-serif;font-size:1.15rem;font-weight:700; color:#FFFFFF;margin-top:2rem;margin-bottom:1rem;'>Skill Gap Priorities & Human Verification (Stage 5)</div>", unsafe_allow_html=True)
+
+# 1. Priority Scoring based on mock market weights
+market_weights = {
+    "Data Scientist": {"Python": 1.0, "SQL": 0.9, "Machine Learning": 0.95, "PyTorch": 0.85},
+    "Software Engineer": {"Python": 0.9, "Java": 0.8, "Docker": 0.85, "Kubernetes": 0.8, "System Design": 0.9}
+}
+role_weights = market_weights.get(role, {})
+default_weight = 0.5
+
+missing_skills = evaluated.get("missing", [])
+prioritized_missing = []
+for skill_data in missing_skills:
+    skill_name = skill_data[0]
+    weight = role_weights.get(skill_name, default_weight)
+    priority = "High" if weight >= 0.8 else ("Medium" if weight >= 0.5 else "Low")
+    prioritized_missing.append({"name": skill_name, "priority": priority, "confidence": skill_data[1]})
+
+if prioritized_missing:
+    p_col1, p_col2 = st.columns([1, 1])
+    with p_col1:
+        st.markdown("<div style='background:#161616;border:1px solid rgba(255,255,255,0.06); border-radius:12px;padding:1.2rem;'><strong>Market-Weighted Priorities</strong><br>", unsafe_allow_html=True)
+        for ps in sorted(prioritized_missing, key=lambda x: {"High":3, "Medium":2, "Low":1}[x["priority"]], reverse=True):
+            color = "#FF5252" if ps["priority"] == "High" else "#FFC107" if ps["priority"] == "Medium" else "#48C78E"
+            st.markdown(f"- **{ps['name']}** <span style='color:{color};'>({ps['priority']})</span>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+# 2. Human-in-the-Loop Review for borderline confidence (< 0.6)
+borderline_skills = []
+for cat in ["mastered", "partial", "missing"]:
+    for skill_data in evaluated.get(cat, []):
+        if skill_data[1] < 0.6:
+            borderline_skills.append((cat, skill_data[0], skill_data[1]))
+
+if borderline_skills:
+    st.markdown("<div style='background:rgba(255,193,7,0.1); border:1px solid #FFC107; border-radius:12px; padding:1.2rem; margin-top:1rem;'>", unsafe_allow_html=True)
+    st.markdown("<strong style='color:#FFC107;'>⚠️ Human-in-the-Loop Review Required</strong><br><span style='font-size:0.9rem;'>We detected some borderline skill classifications. Please verify them:</span><br><br>", unsafe_allow_html=True)
+    for idx, b_skill in enumerate(borderline_skills):
+        cat, name, conf = b_skill
+        col_b1, col_b2 = st.columns([3, 1])
+        with col_b1:
+            st.write(f"Skill: **{name}** (classified as *{cat}*, confidence: {conf})")
+        with col_b2:
+            if st.button(f"Confirm '{name}'", key=f"confirm_skill_{idx}"):
+                # Update confidence to 1.0 (verified)
+                st.session_state["match_results"]["evaluated"][cat] = [[s[0], 1.0] if s[0] == name else s for s in st.session_state["match_results"]["evaluated"][cat]]
+                st.rerun()
+    st.markdown("</div>", unsafe_allow_html=True)
+
 st.markdown("<div style='height:1.2rem;'></div>", unsafe_allow_html=True)
+
 fc1, fc2, fc3 = st.columns(3)
 with fc1: st.page_link("Home.py", label="📊 Dashboard", icon=None)
 with fc2: st.page_link("pages/1_Resume_Analysis.py", label="📄 Re-run Analysis", icon=None)

@@ -74,7 +74,13 @@ def tool_graduate_skill(skill_name: str) -> str:
 def tool_search_web(query: str) -> str:
     """Searches the live web using DuckDuckGo for courses, tutorials, documentation, and career resources."""
     try:
-        results = DDGS().text(query, max_results=3)
+        # If the query is looking for tutorials/courses, force inclusion of structured learning platforms
+        search_query = query
+        if any(term in query.lower() for term in ["tutorial", "course", "learn", "class"]):
+            if not any(site in query.lower() for site in ["udemy", "coursera", "github"]):
+                search_query = f"{query} (site:udemy.com OR site:coursera.org OR site:github.com)"
+                
+        results = DDGS().text(search_query, max_results=3)
         formatted = []
         for r in results:
             formatted.append(f"Title: {r.get('title')}\nURL: {r.get('href')}\nSnippet: {r.get('body')}\n")
@@ -82,7 +88,7 @@ def tool_search_web(query: str) -> str:
     except Exception as e:
         return f"Web search error: {e}"
 
-# Updated to gemini-3.8-flash for current stable support
+# Configured with gemini-3.8-flash model
 model = genai.GenerativeModel(
     model_name="gemini-3.8-flash",
     tools=[tool_update_target_role, tool_graduate_skill, tool_search_web]
@@ -107,7 +113,10 @@ Current User Context:
 - Missing Skills: {", ".join(missing_skills) if missing_skills else "None"}
 - Partial Skills: {", ".join(partial_skills) if partial_skills else "None"}
 
-If the user asks to change target role or graduate a skill, call the tool. If they ask for learning resources to close missing skills, use `tool_search_web` to fetch real-world results and present them clearly with links.
+CRITICAL INSTRUCTION FOR WEB SEARCHES:
+When the user asks for courses, tutorials, or learning resources, you MUST use `tool_search_web`. Construct your search query to explicitly target high-quality platforms (e.g., append terms like "site:udemy.com", "site:coursera.org", or "site:github.com" to your query). Always format your final response with clickable Markdown links containing the exact URLs retrieved from the search results.
+
+If the user asks to change target role or graduate a skill, call the appropriate tool.
 """
 
 if "agent_chat" not in st.session_state:
@@ -115,7 +124,7 @@ if "agent_chat" not in st.session_state:
     try:
         st.session_state["agent_chat"].send_message(system_instruction)
     except Exception as e:
-        st.toast("⚡ API quota reached during mentor initialization. Running in offline fallback mode.", icon="⚠️️")
+        st.toast("⚡ API quota reached during mentor initialization. Running in offline fallback mode.", icon="⚠️")
 
 # Safe history rendering
 try:
