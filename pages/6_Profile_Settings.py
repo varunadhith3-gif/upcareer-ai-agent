@@ -86,9 +86,11 @@ with st.form("profile_form"):
         
     st.text_input("Email Address (Locked)", value=current_email, disabled=True)
     
-    role_options = ["Data Scientist", "Software Engineer", "Embedded Systems Engineer", "Product Manager", "ML Engineer"]
     current_role = st.session_state.get("target_role", "Data Scientist")
-    role_idx = role_options.index(current_role) if current_role in role_options else 0
+    role_options = ["Data Scientist", "Software Engineer", "Embedded Systems Engineer", "Product Manager", "ML Engineer"]
+    if current_role not in role_options:
+        role_options.append(current_role)
+    role_idx = role_options.index(current_role)
     
     new_role = st.selectbox("Target Career Role", options=role_options, index=role_idx)
     study_hours = st.slider("Weekly Study Bandwidth (Hours)", min_value=2, max_value=40, value=10, step=2)
@@ -116,9 +118,14 @@ st.markdown('<div class="section-title" style="color:#FF5252;">Danger Zone</div>
 st.write("Wipe your current resume analysis, score breakdowns, and roadmap checklist state to start fresh.")
 
 if st.button("🗑️ Reset All Analysis & Progress Data"):
-    keys_to_wipe = ["analysis_complete", "readiness_score", "category_scores", "match_results", "roadmap_skills"]
-    for k in keys_to_wipe:
-        if k in st.session_state:
+    keys_to_wipe = [
+        "analysis_complete", "readiness_score", "category_scores", "match_results", 
+        "roadmap_skills", "roadmap_progress", "resume_text", "resume_filename", 
+        "last_evaluated_role", "skills_present", "skills_partial", "skills_missing",
+        "job_description", "agent_chat"
+    ]
+    for k in list(st.session_state.keys()):
+        if k.startswith("saved_task_") or k.startswith("task_") or k in keys_to_wipe:
             del st.session_state[k]
     st.success("✅ Application data wiped. You can now re-run a fresh analysis.")
 

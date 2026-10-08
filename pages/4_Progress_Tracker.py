@@ -41,7 +41,9 @@ if not st.session_state.get("analysis_complete", False):
     st.stop()
 
 target_role = st.session_state.get("target_role", "Target Role")
-skills_to_learn = st.session_state.get("roadmap_skills", [])
+match_results = st.session_state.get("match_results", {})
+evaluated = match_results.get("evaluated", {"missing": [], "partial": [], "mastered": []})
+skills_to_learn = [s[0] if isinstance(s, (tuple, list)) else s for s in evaluated.get("missing", [])]
 
 total_tasks = max(len(skills_to_learn) * 3, 1)
 completed_tasks = 0

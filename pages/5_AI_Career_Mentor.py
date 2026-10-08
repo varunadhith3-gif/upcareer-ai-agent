@@ -131,10 +131,21 @@ try:
     history = st.session_state["agent_chat"].history
     for message in history[1:]: 
         role = "user" if message.role == "user" else "assistant"
+        
+        valid_texts = []
+        for part in message.parts:
+            try:
+                if part.text and part.text.strip():
+                    valid_texts.append(part.text)
+            except Exception:
+                pass
+                
+        if not valid_texts:
+            continue
+            
         with st.chat_message(role):
-            for part in message.parts:
-                if part.text:
-                    st.markdown(part.text)
+            for text in valid_texts:
+                st.markdown(text)
 except Exception:
     pass
 

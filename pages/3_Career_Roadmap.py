@@ -63,6 +63,9 @@ if not missing_skills:
     st.success("🎉 Outstanding! You have no missing critical skills for your target role.")
 else:
     st.markdown(f"### Action Plan for Target Role: **{target_role}**")
+    study_bandwidth = st.session_state.get("study_bandwidth", 10)
+    hours_per_skill = max(1, study_bandwidth // len(missing_skills))
+    st.info(f"⏱️ Based on your **{study_bandwidth} hours/week** study bandwidth, aim to spend about **{hours_per_skill} hours/week** on each skill module below.")
     st.markdown("Complete the modules below for each identified skill gap:")
 
     if "roadmap_progress" not in st.session_state:
