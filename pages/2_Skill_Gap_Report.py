@@ -292,15 +292,21 @@ if prioritized_missing:
         st.markdown("</div>", unsafe_allow_html=True)
 
 # 2. Human-in-the-Loop Review for borderline confidence (< 0.6)
+# BUG-02 fix: confirmed skills tracked in session_state["hitl_confirmed"]
+# to prevent re-display and ensure downstream state is fully propagated.
+if "hitl_confirmed" not in st.session_state:
+    st.session_state["hitl_confirmed"] = []
+
 borderline_skills = []
 for cat in ["mastered", "partial", "missing"]:
     for skill_data in evaluated.get(cat, []):
-        if skill_data[1] < 0.6:
-            borderline_skills.append((cat, skill_data[0], skill_data[1]))
+        skill_name_check = skill_data[0] if isinstance(skill_data, (list, tuple)) else str(skill_data)
+        if skill_data[1] < 0.6 and skill_name_check not in st.session_state["hitl_confirmed"]:
+            borderline_skills.append((cat, skill_name_check, skill_data[1]))
 
 if borderline_skills:
     st.markdown("<div style='background:rgba(255,193,7,0.1); border:1px solid #FFC107; border-radius:12px; padding:1.2rem; margin-top:1rem;'>", unsafe_allow_html=True)
-    st.markdown("<strong style='color:#FFC107;'>⚠️ Human-in-the-Loop Review Required</strong><br><span style='font-size:0.9rem;'>We detected some borderline skill classifications. Please verify them:</span><br><br>", unsafe_allow_html=True)
+    st.markdown("<strong style='color:#FFC107;'>\u26a0\ufe0f Human-in-the-Loop Review Required</strong><br><span style='font-size:0.9rem;'>We detected some borderline skill classifications. Please verify them:</span><br><br>", unsafe_allow_html=True)
     for idx, b_skill in enumerate(borderline_skills):
         cat, name, conf = b_skill
         col_b1, col_b2 = st.columns([3, 1])
@@ -308,8 +314,47 @@ if borderline_skills:
             st.write(f"Skill: **{name}** (classified as *{cat}*, confidence: {conf})")
         with col_b2:
             if st.button(f"Confirm '{name}'", key=f"confirm_skill_{idx}"):
-                # Update confidence to 1.0 (verified)
-                st.session_state["match_results"]["evaluated"][cat] = [[s[0], 1.0] if s[0] == name else s for s in st.session_state["match_results"]["evaluated"][cat]]
+                # Step 1: Boost confidence to 1.0 in match_results
+                st.session_state["match_results"]["evaluated"][cat] = [
+                    [s[0], 1.0] if s[0] == name else s
+                    for s in st.session_state["match_results"]["evaluated"][cat]
+                ]
+
+                # Step 2: Record this skill as confirmed (prevents re-display on rerun)
+                confirmed = st.session_state.get("hitl_confirmed", [])
+                if name not in confirmed:
+                    confirmed.append(name)
+                st.session_state["hitl_confirmed"] = confirmed
+
+                # Step 3: Recompute all downstream derived counts
+                updated_eval = st.session_state["match_results"].get("evaluated", {})
+                new_m = len(updated_eval.get("mastered", []))
+                new_p = len(updated_eval.get("partial", []))
+                new_mis = len(updated_eval.get("missing", []))
+
+                st.session_state["skills_present"] = new_m
+                st.session_state["skills_partial"] = new_p
+                st.session_state["skills_missing"] = new_mis
+
+                # Step 4: Recalculate readiness score with updated counts
+                _role = st.session_state.get("target_role", "Software Engineer")
+                _role_hash = sum(ord(c) for c in _role)
+                _new_score = max(22, min(65, int(round(
+                    28 + (new_m * 5) + (new_p * 2) - (new_mis * 1.1) + (_role_hash % 16) - 8
+                ))))
+                st.session_state["readiness_score"] = _new_score
+                st.session_state["category_scores"] = {
+                    "Skills":         max(25, min(65, _new_score + (_role_hash % 6))),
+                    "Experience":     max(15, min(45, _new_score - 6)),
+                    "Projects":       max(30, min(68, _new_score + 5)),
+                    "Education":      75,
+                    "Certifications": max(10, min(40, _new_score - 10)),
+                }
+
+                # Step 5: Mark roadmap stale so pacing banner fires on next visit
+                st.session_state["roadmap_stale"] = True
+
+                st.toast(f"\u2705 '{name}' confirmed as {cat}. Scores updated.", icon="\U0001f50d")
                 st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 

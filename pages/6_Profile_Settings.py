@@ -71,6 +71,16 @@ def save_users(users):
     with open(USER_DB_FILE, "w") as f:
         json.dump(users, f)
 
+# ── Load persisted bandwidth on first visit (restores value from users.json) ──
+if "study_bandwidth" not in st.session_state:
+    users_db = load_users()
+    current_email = st.session_state.get("user_email", "")
+    if current_email and current_email in users_db:
+        saved_bw = users_db[current_email].get("study_bandwidth", 10)
+        st.session_state["study_bandwidth"] = saved_bw
+    else:
+        st.session_state["study_bandwidth"] = 10
+
 # ── 1. Personal & Role Preferences ────────────────────────────────────────────
 st.markdown('<div class="settings-card">', unsafe_allow_html=True)
 st.markdown('<div class="section-title">Personal & Career Preferences</div>', unsafe_allow_html=True)
@@ -93,22 +103,28 @@ with st.form("profile_form"):
     role_idx = role_options.index(current_role)
     
     new_role = st.selectbox("Target Career Role", options=role_options, index=role_idx)
-    study_hours = st.slider("Weekly Study Bandwidth (Hours)", min_value=2, max_value=40, value=10, step=2)
+    study_hours = st.slider("Weekly Study Bandwidth (Hours)", min_value=2, max_value=40, value=st.session_state.get("study_bandwidth", 10), step=2)
     
     if st.form_submit_button("💾 Save Settings", use_container_width=True):
+        prev_bandwidth = st.session_state.get("study_bandwidth", 10)
         st.session_state["user_name"] = new_first
         st.session_state["last_name"] = new_last
         st.session_state["target_role"] = new_role
         st.session_state["study_bandwidth"] = study_hours
+
+        # If bandwidth changed, mark the roadmap as stale so it recalculates pacing
+        if study_hours != prev_bandwidth:
+            st.session_state["roadmap_stale"] = True
         
-        # Sync changes back to local JSON database
+        # Sync changes back to local JSON database (including bandwidth)
         users_db = load_users()
         if current_email in users_db:
             users_db[current_email]["first_name"] = new_first
             users_db[current_email]["last_name"] = new_last
+            users_db[current_email]["study_bandwidth"] = study_hours
             save_users(users_db)
             
-        st.success("✅ Profile and preferences successfully updated!")
+        st.success("✅ Profile and preferences successfully updated! Career Roadmap pacing will reflect your new bandwidth.")
 
 st.markdown('</div>', unsafe_allow_html=True)
 

@@ -40,6 +40,12 @@ if not st.session_state.get("analysis_complete", False):
     st.warning("⚠️ No active profile data found! Please head to **Resume Analysis** and run your first report.")
     st.stop()
 
+# BUG-03 fix: Sync roadmap_progress nested dict into flat session_state keys so
+# this page always sees the latest saved checkboxes regardless of navigation order.
+roadmap_progress = st.session_state.get("roadmap_progress", {})
+for _prog_key, _prog_val in roadmap_progress.items():
+    st.session_state[_prog_key] = _prog_val
+
 target_role = st.session_state.get("target_role", "Target Role")
 match_results = st.session_state.get("match_results", {})
 evaluated = match_results.get("evaluated", {"missing": [], "partial": [], "mastered": []})

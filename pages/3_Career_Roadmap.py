@@ -65,49 +65,64 @@ else:
     st.markdown(f"### Action Plan for Target Role: **{target_role}**")
     study_bandwidth = st.session_state.get("study_bandwidth", 10)
     hours_per_skill = max(1, study_bandwidth // len(missing_skills))
+
+    # BUG-01 fix: if bandwidth was just updated in Profile Settings, show recalculation notice
+    if st.session_state.pop("roadmap_stale", False):
+        st.success(f"✅ Roadmap pacing recalculated! New bandwidth: **{study_bandwidth} hours/week**.")
+
     st.info(f"⏱️ Based on your **{study_bandwidth} hours/week** study bandwidth, aim to spend about **{hours_per_skill} hours/week** on each skill module below.")
     st.markdown("Complete the modules below for each identified skill gap:")
 
     if "roadmap_progress" not in st.session_state:
         st.session_state["roadmap_progress"] = {}
 
-    temp_checkbox_states = {}
+    # Widget keys for each task type — Streamlit owns these after render.
+    # We only read them at save-time; we never write to them manually.
+    skill_keys = []  # list of (skill, c_key, p_key, r_key)
 
     for item in missing_skills:
         skill = item[0] if isinstance(item, (tuple, list)) else item
-        
-        with st.expander(f"📌 {skill} — Action Required", expanded=False):
-            # Retrieve checkbox completion states
-            c_key = f"saved_task_{skill}_course"
-            p_key = f"saved_task_{skill}_project"
-            r_key = f"saved_task_{skill}_reading"
-            
-            c_status = st.session_state["roadmap_progress"].get(c_key, False)
-            p_status = st.session_state["roadmap_progress"].get(p_key, False)
-            r_status = st.session_state["roadmap_progress"].get(r_key, False)
 
+        c_key = f"saved_task_{skill}_course"
+        p_key = f"saved_task_{skill}_project"
+        r_key = f"saved_task_{skill}_reading"
+        skill_keys.append((skill, c_key, p_key, r_key))
+
+        # Seed widget initial value from roadmap_progress BEFORE rendering the
+        # widget. Streamlit only respects `value=` on the very first render of
+        # a key, so this is safe and does not conflict with the live widget.
+        c_status = st.session_state["roadmap_progress"].get(c_key, False)
+        p_status = st.session_state["roadmap_progress"].get(p_key, False)
+        r_status = st.session_state["roadmap_progress"].get(r_key, False)
+
+        with st.expander(f"📌 {skill} — Action Required", expanded=False):
             # 1. Take a Course (Using direct verified Udemy/Coursera links)
             course_title, course_url = get_verified_course_link(skill)
             st.markdown("#### 1. Take a Course")
             st.markdown(f"[{course_title}]({course_url})")
-            temp_checkbox_states[c_key] = st.checkbox(f"I completed the {skill} course", value=c_status, key=c_key)
+            st.checkbox(f"I completed the {skill} course", value=c_status, key=c_key)
 
             st.divider()
 
             # 2. Hands-On Project
             st.markdown("#### 2. Hands-On Project")
             st.info(f"**Mission**: Build a small application or component focused entirely on implementing {skill} in a real-world scenario.")
-            temp_checkbox_states[p_key] = st.checkbox(f"I built the {skill} project", value=p_status, key=p_key)
+            st.checkbox(f"I built the {skill} project", value=p_status, key=p_key)
 
             st.divider()
 
             # 3. Reading Material
             st.markdown("#### 3. Reading Material")
             st.markdown(f"[{skill} Official Documentation & Guides](https://www.google.com/search?q={skill.replace(' ', '+')}+documentation)")
-            temp_checkbox_states[r_key] = st.checkbox(f"I finished the {skill} reading", value=r_status, key=r_key)
+            st.checkbox(f"I finished the {skill} reading", value=r_status, key=r_key)
 
-    # Save progress action button
+    # Save progress — read live widget values from st.session_state (Streamlit
+    # updates widget-bound keys automatically; we must NOT assign to them here).
+    # Persist into roadmap_progress, which is the single source of truth that
+    # the Progress Tracker syncs from on its page load.
     if st.button("💾 Save Progress & Update Roadmap", type="primary"):
-        for k, v in temp_checkbox_states.items():
-            st.session_state["roadmap_progress"][k] = v
+        for skill, c_key, p_key, r_key in skill_keys:
+            st.session_state["roadmap_progress"][c_key] = st.session_state.get(c_key, False)
+            st.session_state["roadmap_progress"][p_key] = st.session_state.get(p_key, False)
+            st.session_state["roadmap_progress"][r_key] = st.session_state.get(r_key, False)
         st.toast("✅ Roadmap progress saved successfully!", icon="🎉")
