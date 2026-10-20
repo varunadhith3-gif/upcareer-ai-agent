@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import boto3
 import sys
 import os
@@ -16,7 +16,6 @@ from utils.sidebar import render_sidebar
 
 st.set_page_config(
     page_title="AI Career Mentor - UpCareer AI",
-    page_icon="🤖",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -31,7 +30,7 @@ st.markdown("""
     <div style='display:inline-flex;align-items:center;gap:0.4rem;background:rgba(99,102,241,0.10);
         border:1px solid rgba(99,102,241,0.28);border-radius:20px;padding:0.22rem 0.75rem;
         font-size:0.8rem;font-weight:600;color:#818CF8;margin-bottom:0.6rem;'>
-        🤖 &nbsp;Powered by Amazon Nova Micro
+        Powered by Amazon Nova Micro
     </div>
     <div style='font-family:Outfit,sans-serif;font-size:2rem;font-weight:800;color:#FFFFFF;
         letter-spacing:-0.5px;margin:0 0 0.4rem 0;'>
@@ -49,7 +48,7 @@ st.markdown("""
 # Context panel (collapsible)
 # ---------------------------------------------------------------------------
 if st.session_state.get("analysis_complete", False):
-    with st.expander("📊 Your current profile snapshot", expanded=False):
+    with st.expander("Your current profile snapshot", expanded=False):
         col_a, col_b, col_c = st.columns(3)
         col_a.metric("Target Role",  st.session_state.get("target_role", "—"))
         col_b.metric("Readiness",    f"{st.session_state.get('readiness_score', '—')}/100")
@@ -66,7 +65,7 @@ if st.session_state.get("analysis_complete", False):
                 unsafe_allow_html=True,
             )
 else:
-    st.info("ℹ️ Upload your resume on the **Resume Analysis** page first to give the mentor full context about your profile.", icon="📄")
+    st.info("Upload your resume on the **Resume Analysis** page first to give the mentor full context about your profile.")
 
 # ---------------------------------------------------------------------------
 # Bedrock / Nova Micro invocation (kept fully intact)
@@ -123,7 +122,7 @@ def invoke_nova_mentor(
         return response["output"]["message"]["content"][0]["text"]
 
     except Exception as e:
-        return f"⚠️ Error communicating with Amazon Bedrock (Nova Micro): {str(e)}"
+        return f"Error communicating with Amazon Bedrock (Nova Micro): {str(e)}"
 
 
 # ---------------------------------------------------------------------------
@@ -145,7 +144,7 @@ if pending_role:
         f"""
         <div style='background:rgba(72,199,142,0.10);border:1px solid rgba(72,199,142,0.30);
             border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.2rem;'>
-            <strong style='color:#48C78E;'>🔄 Career path change detected</strong><br>
+            <strong style='color:#48C78E;'>Career path change detected</strong><br>
             <span style='color:#CCC;font-size:0.9rem;'>
                 The mentor suggested switching your target role to
                 <strong style='color:#FFC107;'>{pending_role}</strong>.
@@ -157,21 +156,20 @@ if pending_role:
     )
     col_yes, col_no, _ = st.columns([1, 1, 4])
     with col_yes:
-        if st.button("✅ Apply change", key="apply_role_change", type="primary"):
+        if st.button("Apply change", key="apply_role_change", type="primary"):
             with st.spinner(f"Re-evaluating your profile for {pending_role}..."):
                 success = apply_career_change(pending_role)
             if success:
                 st.session_state["mentor_pending_role"] = None
                 st.toast(
-                    f"✅ Target role updated to **{pending_role}**! "
-                    "Career Roadmap & Progress Tracker are now in sync.",
-                    icon="🎯",
+                    f"Target role updated to **{pending_role}**! "
+                    "Career Roadmap & Progress Tracker are now in sync."
                 )
                 st.rerun()
             else:
-                st.error("⚠️ Could not apply the change — no resume data found. Please run Resume Analysis first.")
+                st.error("Could not apply the change — no resume data found. Please run Resume Analysis first.")
     with col_no:
-        if st.button("✖ Dismiss", key="dismiss_role_change"):
+        if st.button("Dismiss", key="dismiss_role_change"):
             st.session_state["mentor_pending_role"] = None
             st.rerun()
 
@@ -221,9 +219,8 @@ if user_prompt := st.chat_input("Ask your mentor anything — or say 'Switch my 
                 success = apply_career_change(detected_role)
             if success:
                 st.toast(
-                    f"🎯 Career path updated to **{detected_role}**! "
-                    "Roadmap & Progress Tracker are in sync.",
-                    icon="✅",
+                    f"Career path updated to **{detected_role}**! "
+                    "Roadmap & Progress Tracker are in sync."
                 )
                 st.rerun()
         else:
@@ -255,14 +252,14 @@ with st.sidebar:
                     apply_career_change(role_opt)
                 # Append a mentor message confirming the switch
                 confirm_msg = (
-                    f"✅ I've updated your target role to **{role_opt}**. "
+                    f"I've updated your target role to **{role_opt}**. "
                     f"Your Career Roadmap and Progress Tracker have been refreshed with the new skill gaps for this role. "
-                    f"Head over to the 🗺️ Career Roadmap page to see your updated action plan!"
+                    f"Head over to the Career Roadmap page to see your updated action plan!"
                 )
                 st.session_state["mentor_messages"].append(
                     {"role": "assistant", "content": confirm_msg}
                 )
-                st.toast(f"🎯 Switched to {role_opt}!", icon="✅")
+                st.toast(f"Switched to {role_opt}.")
                 st.rerun()
             else:
                 st.warning("Upload your resume first to switch roles.")

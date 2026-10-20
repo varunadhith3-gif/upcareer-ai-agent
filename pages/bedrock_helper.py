@@ -41,4 +41,4 @@ def invoke_nova_mentor(chat_history_messages, user_input):
         return output_text
         
     except Exception as e:
-        return f"⚠️ Error communicating with Amazon Bedrock (Nova Micro): {str(e)}"
+        return f"Error communicating with Amazon Bedrock (Nova Micro): {str(e)}"

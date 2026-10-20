@@ -5,13 +5,13 @@ import inspect
 def render_sidebar():
     # Define navigation pages
     pages = [
-        {"path": "Home.py",                       "label": "Dashboard",        "icon": "📊"},
-        {"path": "pages/1_Resume_Analysis.py",    "label": "Resume Analysis",  "icon": "📄"},
-        {"path": "pages/2_Skill_Gap_Report.py",   "label": "Skill Gap Report", "icon": "🎯"},
-        {"path": "pages/3_Career_Roadmap.py",     "label": "Career Roadmap",   "icon": "🗺️"},
-        {"path": "pages/4_Progress_Tracker.py",   "label": "Progress Tracker", "icon": "📈"},
-        {"path": "pages/5_AI_Career_Mentor.py",   "label": "AI Career Mentor", "icon": "🤖"},
-        {"path": "pages/6_Profile_Settings.py",   "label": "Profile Settings", "icon": "⚙️"},
+        {"path": "Home.py",                       "label": "Dashboard"},
+        {"path": "pages/1_Resume_Analysis.py",    "label": "Resume Analysis"},
+        {"path": "pages/2_Skill_Gap_Report.py",   "label": "Skill Gap Report"},
+        {"path": "pages/3_Career_Roadmap.py",     "label": "Career Roadmap"},
+        {"path": "pages/4_Progress_Tracker.py",   "label": "Progress Tracker"},
+        {"path": "pages/5_AI_Career_Mentor.py",   "label": "AI Career Mentor"},
+        {"path": "pages/6_Profile_Settings.py",   "label": "Profile Settings"},
     ]
 
     # Determine the calling script's basename to highlight the active page
@@ -200,7 +200,6 @@ def render_sidebar():
             """
             <div class="sb-header">
                 <div class="sb-logo-row">
-                    <span class="sb-logo">🚀</span>
                     <span class="sb-title">UpCareer AI</span>
                 </div>
                 <div class="sb-subtitle">Career guidance engine</div>
@@ -216,16 +215,16 @@ def render_sidebar():
             if is_active:
                 # Render active item as a styled HTML element (no click needed)
                 st.markdown(
-                    f'<span class="sb-active-link">{p["icon"]}&nbsp;&nbsp;{p["label"]}</span>',
+                    f'<span class="sb-active-link">{p["label"]}</span>',
                     unsafe_allow_html=True,
                 )
             else:
-                st.page_link(p["path"], label=p["label"], icon=p["icon"])
+                st.page_link(p["path"], label=p["label"])
         st.markdown("</div>", unsafe_allow_html=True)
 
         # 3. Sign-out pinned at bottom
         st.markdown('<div class="sb-footer">', unsafe_allow_html=True)
-        if st.button("↩  Sign out", key="sign_out_btn", use_container_width=True):
+        if st.button("Sign out", key="sign_out_btn", use_container_width=True):
             st.session_state.clear()
-            st.toast("Signed out successfully!", icon="ℹ️")
+            st.toast("Signed out successfully.")
         st.markdown("</div>", unsafe_allow_html=True)

@@ -3,7 +3,6 @@ from utils.sidebar import render_sidebar
 
 st.set_page_config(
     page_title="UpCareer AI - Progress Tracker",
-    page_icon="📈",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -25,7 +24,7 @@ st.markdown("""
 st.markdown("""
 <div style='padding:2rem 0 1.4rem 0;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:1.8rem;'>
     <div style='display:inline-flex;align-items:center;gap:0.4rem;background:rgba(255,193,7,0.10); border:1px solid rgba(255,193,7,0.25);border-radius:20px;padding:0.22rem 0.75rem; font-size:0.8rem;font-weight:600;color:#FFC107;margin-bottom:0.6rem;'>
-        📈 &nbsp;Activity Overview
+        Activity Overview
     </div>
     <div style='font-family:Outfit,sans-serif;font-size:2rem;font-weight:800;color:#FFFFFF; letter-spacing:-0.5px;margin:0 0 0.4rem 0;'>
         Progress Tracker
@@ -37,7 +36,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 if not st.session_state.get("analysis_complete", False):
-    st.warning("⚠️ No active profile data found! Please head to **Resume Analysis** and run your first report.")
+    st.warning("No active profile data found! Please head to **Resume Analysis** and run your first report.")
     st.stop()
 
 # BUG-03 fix: Sync roadmap_progress nested dict into flat session_state keys so
@@ -91,11 +90,11 @@ st.markdown(f"""
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ── Detailed Activity Breakdown ───────────────────────────────────────────────
-st.markdown("### 📋 Milestone Checklist")
+st.markdown("### Milestone Checklist")
 st.write("A breakdown of your learning milestones by skill module:")
 
 if not skills_to_learn:
-    st.success("🎉 You have no pending skill gaps to track! You are fully prepared.")
+    st.success("You have no pending skill gaps to track! You are fully prepared.")
 else:
     for skill in skills_to_learn:
         c_done = 1 if (st.session_state.get(f"saved_task_{skill}_course", False) or st.session_state.get(f"task_{skill}_course", False)) else 0
@@ -104,7 +103,7 @@ else:
         skill_score = c_done + p_done + r_done
         
         status_color = "#48C78E" if skill_score == 3 else ("#FFC107" if skill_score > 0 else "#666")
-        status_text = "Completed 🟢" if skill_score == 3 else f"{skill_score} / 3 Completed"
+        status_text = "Completed" if skill_score == 3 else f"{skill_score} / 3 Completed"
         
         st.markdown(f"""
         <div style='background: #161616; border: 1px solid rgba(255,255,255,0.06); border-radius: 10px; padding: 1rem 1.2rem; margin-bottom: 0.8rem; display: flex; justify-content: space-between; align-items: center;'>
@@ -122,6 +121,6 @@ else:
 st.markdown("<div style='height: 1rem;'></div>", unsafe_allow_html=True)
 col1, col2 = st.columns(2)
 with col1:
-    st.page_link("pages/3_Career_Roadmap.py", label="🗺️ Back to Career Roadmap", icon=None)
+    st.page_link("pages/3_Career_Roadmap.py", label="Back to Career Roadmap")
 with col2:
-    st.page_link("Home.py", label="📊 Go to Dashboard", icon=None)
+    st.page_link("Home.py", label="Go to Dashboard")

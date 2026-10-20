@@ -9,7 +9,6 @@ from utils.sidebar import render_sidebar
 
 st.set_page_config(
     page_title="UpCareer AI - Dashboard",
-    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -61,7 +60,7 @@ if not st.session_state["logged_in"]:
         
         # Render the working Google login button
         result = oauth2.authorize_button(
-            name="🌐 Continue with Google",
+            name="Continue with Google",
             redirect_uri=st.secrets["GOOGLE_REDIRECT_URI"],
             scope="openid email profile",
             key="google_login",
@@ -170,13 +169,12 @@ st.markdown("""
 if not st.session_state.get("analysis_complete", False):
     st.markdown(
         "<div style='background:#161616;border:1px solid rgba(255,255,255,0.06); border-radius:16px;padding:3.5rem 2rem;text-align:center;margin-top:1rem;'>"
-        "<div style='font-size:3rem;margin-bottom:1rem;'>📊</div>"
         f"<div style='font-family:Outfit,sans-serif;font-size:1.3rem;font-weight:700; color:#FFFFFF;margin-bottom:0.5rem;'>Welcome, {st.session_state.get('user_name', '')}!</div>"
         "<div style='font-size:0.85rem;color:#777;max-width:420px;margin:0 auto 1.4rem auto; line-height:1.6;'>"
         "To generate your live dashboard, please upload your resume on the Analysis page first.</div>"
         "</div>", unsafe_allow_html=True
     )
-    st.page_link("pages/1_Resume_Analysis.py", label="📄 Go to Resume Analysis", icon=None)
+    st.page_link("pages/1_Resume_Analysis.py", label="Go to Resume Analysis")
     st.stop()
 
 # Load real values
@@ -190,9 +188,9 @@ n_missing   = st.session_state.get("skills_missing", 0)
 
 st.markdown(f"""
 <div class="dash-header">
-    <div class="dash-role-pill">🎯 &nbsp;Target role: {role}</div>
-    <div class="dash-welcome">Welcome back, <span>{name}</span> 👋</div>
-    <div class="dash-disclaimer">ℹ️ Your score actively syncs with your Career Roadmap progress.</div>
+    <div class="dash-role-pill">Target role: {role}</div>
+    <div class="dash-welcome">Welcome back, <span>{name}</span></div>
+    <div class="dash-disclaimer">Your score actively syncs with your Career Roadmap progress.</div>
 </div>
 """, unsafe_allow_html=True)
 
@@ -223,20 +221,18 @@ with col_left:
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col_right:
-    cat_meta = {"Skills": "🛠️", "Experience": "💼", "Projects": "🗂️", "Education": "🎓", "Certifications": "📜"}
     bars_html = ""
     for cat, cat_score in cats.items():
-        icon = cat_meta.get(cat, "•")
         bars_html += (
             "<div style='margin-bottom:1.05rem;'>"
             "<div style='display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.3rem;'>"
-            "<span style='font-size:0.84rem;font-weight:600;color:#FFFFFF;'>{icon}&nbsp; {cat}</span>"
+            "<span style='font-size:0.84rem;font-weight:600;color:#FFFFFF;'>{cat}</span>"
             "<span style='font-size:0.84rem;font-weight:700;color:#FFC107;min-width:2.2rem;text-align:right;'>{score}</span>"
             "</div>"
             "<div style='background:rgba(255,255,255,0.07);border-radius:20px;height:6px;width:100%;overflow:hidden;margin-bottom:0.25rem;'>"
             "<div style='height:100%;border-radius:20px;background:linear-gradient(90deg,#FFC107 0%,#48C78E 100%);width:{pct}%;'></div>"
             "</div></div>"
-        ).format(icon=icon, cat=cat, score=cat_score, pct=cat_score)
+        ).format(cat=cat, score=cat_score, pct=cat_score)
 
     st.markdown(
         "<div style='background-color:#161616;border:1px solid rgba(255,255,255,0.06); border-radius:16px;padding:1.6rem;margin-bottom:1.2rem;'>"

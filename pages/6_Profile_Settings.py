@@ -5,7 +5,6 @@ from utils.sidebar import render_sidebar
 
 st.set_page_config(
     page_title="UpCareer AI - Profile Settings",
-    page_icon="⚙️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -46,7 +45,7 @@ st.markdown("""
     <div style='display:inline-flex;align-items:center;gap:0.4rem;background:rgba(255,193,7,0.10);
         border:1px solid rgba(255,193,7,0.25);border-radius:20px;padding:0.22rem 0.75rem;
         font-size:0.8rem;font-weight:600;color:#FFC107;margin-bottom:0.6rem;'>
-        ⚙️ &nbsp;Account Management
+        Account Management
     </div>
     <div style='font-family:Outfit,sans-serif;font-size:2rem;font-weight:800;color:#FFFFFF;
         letter-spacing:-0.5px;margin:0 0 0.4rem 0;'>
@@ -105,7 +104,7 @@ with st.form("profile_form"):
     new_role = st.selectbox("Target Career Role", options=role_options, index=role_idx)
     study_hours = st.slider("Weekly Study Bandwidth (Hours)", min_value=2, max_value=40, value=st.session_state.get("study_bandwidth", 10), step=2)
     
-    if st.form_submit_button("💾 Save Settings", use_container_width=True):
+    if st.form_submit_button("Save Settings", use_container_width=True):
         prev_bandwidth = st.session_state.get("study_bandwidth", 10)
         st.session_state["user_name"] = new_first
         st.session_state["last_name"] = new_last
@@ -124,7 +123,7 @@ with st.form("profile_form"):
             users_db[current_email]["study_bandwidth"] = study_hours
             save_users(users_db)
             
-        st.success("✅ Profile and preferences successfully updated! Career Roadmap pacing will reflect your new bandwidth.")
+        st.success("Profile and preferences successfully updated! Career Roadmap pacing will reflect your new bandwidth.")
 
 st.markdown('</div>', unsafe_allow_html=True)
 
@@ -133,7 +132,7 @@ st.markdown('<div class="settings-card danger-zone">', unsafe_allow_html=True)
 st.markdown('<div class="section-title" style="color:#FF5252;">Danger Zone</div>', unsafe_allow_html=True)
 st.write("Wipe your current resume analysis, score breakdowns, and roadmap checklist state to start fresh.")
 
-if st.button("🗑️ Reset All Analysis & Progress Data"):
+if st.button("Reset All Analysis & Progress Data"):
     keys_to_wipe = [
         "analysis_complete", "readiness_score", "category_scores", "match_results", 
         "roadmap_skills", "roadmap_progress", "resume_text", "resume_filename", 
@@ -143,7 +142,7 @@ if st.button("🗑️ Reset All Analysis & Progress Data"):
     for k in list(st.session_state.keys()):
         if k.startswith("saved_task_") or k.startswith("task_") or k in keys_to_wipe:
             del st.session_state[k]
-    st.success("✅ Application data wiped. You can now re-run a fresh analysis.")
+    st.success("Application data wiped. You can now re-run a fresh analysis.")
 
 st.markdown('</div>', unsafe_allow_html=True)
 
@@ -152,7 +151,7 @@ st.markdown('<div class="settings-card">', unsafe_allow_html=True)
 st.markdown('<div class="section-title">Session Management</div>', unsafe_allow_html=True)
 st.write("Securely sign out of your local session.")
 
-if st.button("🚪 Sign Out", type="primary", use_container_width=True):
+if st.button("Sign Out", type="primary", use_container_width=True):
     st.session_state.clear()
     st.switch_page("Home.py")
 

@@ -5,7 +5,6 @@ from utils.sidebar import render_sidebar
 
 st.set_page_config(
     page_title="UpCareer AI - Resume Analysis",
-    page_icon="📄",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -17,7 +16,7 @@ st.markdown("""
     <div style='display:inline-flex;align-items:center;gap:0.4rem;background:rgba(255,193,7,0.10);
         border:1px solid rgba(255,193,7,0.25);border-radius:20px;padding:0.22rem 0.75rem;
         font-size:0.8rem;font-weight:600;color:#FFC107;margin-bottom:0.6rem;'>
-        📄 &nbsp;Resume Intelligence & Parsing Engine
+        Resume Intelligence & Parsing Engine
     </div>
     <div style='font-family:Outfit,sans-serif;font-size:2rem;font-weight:800;color:#FFFFFF;
         letter-spacing:-0.5px;margin:0 0 0.4rem 0;'>
@@ -31,7 +30,7 @@ st.markdown("""
 
 api_key = st.secrets.get("GEMINI_API_KEY")
 if not api_key:
-    st.error("❌ Missing `GEMINI_API_KEY` in your `.streamlit/secrets.toml` file.")
+    st.error("Missing `GEMINI_API_KEY` in your `.streamlit/secrets.toml` file.")
     st.stop()
 
 genai.configure(api_key=api_key)
@@ -39,7 +38,7 @@ genai.configure(api_key=api_key)
 col_left, col_right = st.columns([1.1, 1], gap="large")
 
 with col_left:
-    st.markdown("<div style='font-family:Outfit,sans-serif;font-size:1.1rem;font-weight:700;color:#FFFFFF;margin-bottom:0.8rem;'>📁 Upload your resume</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-family:Outfit,sans-serif;font-size:1.1rem;font-weight:700;color:#FFFFFF;margin-bottom:0.8rem;'>Upload your resume</div>", unsafe_allow_html=True)
     
     uploaded_file = st.file_uploader("Upload PDF or TXT resume", type=["pdf", "txt"], label_visibility="collapsed")
     
@@ -65,7 +64,7 @@ with col_left:
     elif "resume_filename" in st.session_state:
         st.markdown(
             f"<div style='background:#1a2e22;border:1px solid #285430;border-radius:10px;padding:0.75rem 1rem;margin-bottom:1.0rem;'>"
-            f"<span style='color:#48C78E;font-weight:600;font-size:0.85rem;'>✔ Currently loaded:</span><br>"
+            f"<span style='color:#48C78E;font-weight:600;font-size:0.85rem;'>Currently loaded:</span><br>"
             f"<span style='color:#FFFFFF;font-weight:700;font-size:0.9rem;'>{st.session_state['resume_filename']}</span>"
             f"</div>",
             unsafe_allow_html=True
@@ -82,7 +81,7 @@ with col_left:
     st.session_state["resume_text"] = editable_resume_text
 
     st.markdown("<div style='font-family:Outfit,sans-serif;font-size:1rem;font-weight:700;color:#FFFFFF;margin:1.2rem 0 0.5rem 0;'>BIAS & FAIRNESS AUDIT (Stage 6)</div>", unsafe_allow_html=True)
-    if st.button("🔍 Run Fairness Audit", use_container_width=True):
+    if st.button("Run Fairness Audit", use_container_width=True):
         resume_content = st.session_state.get("resume_text", "").lower()
         if not resume_content.strip():
             st.warning("Please upload a resume first.")
@@ -90,13 +89,13 @@ with col_left:
             bias_terms = ["he", "she", "his", "hers", "white", "black", "asian", "christian", "muslim", "older", "younger", "married", "single", "father", "mother", "maternity"]
             found_flags = [t for t in bias_terms if f" {t} " in f" {resume_content} " or f" {t}." in f" {resume_content} " or f" {t}," in f" {resume_content} "]
             if found_flags:
-                st.markdown(f"<div style='background:rgba(255,82,82,0.1); border:1px solid #FF5252; border-radius:8px; padding:1rem;'><strong style='color:#FF5252;'>⚠️ Audit Flagged:</strong> Potential demographic proxy phrases detected ({', '.join(found_flags)}). Consider removing them for unbiased evaluation.</div>", unsafe_allow_html=True)
+                st.markdown(f"<div style='background:rgba(255,82,82,0.1); border:1px solid #FF5252; border-radius:8px; padding:1rem;'><strong style='color:#FF5252;'>Audit Flagged:</strong> Potential demographic proxy phrases detected ({', '.join(found_flags)}). Consider removing them for unbiased evaluation.</div>", unsafe_allow_html=True)
             else:
-                st.markdown("<div style='background:rgba(72,199,142,0.1); border:1px solid #48C78E; border-radius:8px; padding:1rem;'><strong style='color:#48C78E;'>✅ Audit Passed:</strong> Clean compliance badge earned! No obvious demographic proxies detected.</div>", unsafe_allow_html=True)
+                st.markdown("<div style='background:rgba(72,199,142,0.1); border:1px solid #48C78E; border-radius:8px; padding:1rem;'><strong style='color:#48C78E;'>Audit Passed:</strong> Clean compliance badge earned! No obvious demographic proxies detected.</div>", unsafe_allow_html=True)
 
 
 with col_right:
-    st.markdown("<div style='font-family:Outfit,sans-serif;font-size:1.1rem;font-weight:700;color:#FFFFFF;margin-bottom:0.8rem;'>🎯 Target role</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-family:Outfit,sans-serif;font-size:1.1rem;font-weight:700;color:#FFFFFF;margin-bottom:0.8rem;'>Target role</div>", unsafe_allow_html=True)
     
     roles_list = [
         "Software Engineer",
@@ -124,11 +123,11 @@ with col_right:
 
     st.markdown("<div style='height:1.2rem;'></div>", unsafe_allow_html=True)
     
-    analyze_btn = st.button("⚡ Analyze resume", use_container_width=True, type="primary")
+    analyze_btn = st.button("Analyze resume", use_container_width=True, type="primary")
 
 if analyze_btn:
     if not st.session_state.get("resume_text", "").strip():
-        st.warning("⚠️ Please upload a resume file or paste resume text before analyzing.")
+        st.warning("Please upload a resume file or paste resume text before analyzing.")
     else:
         with st.spinner("Analyzing resume against target role..."):
             match_res = None

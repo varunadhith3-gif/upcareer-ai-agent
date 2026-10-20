@@ -74,15 +74,15 @@ st.title("UpCareer AI: Career Mentor & Roadmap Generator")
 
 # Sidebar
 with st.sidebar:
-    st.title("🛠️ Configuration")
+    st.title("Configuration")
     st.markdown("Configure your career roadmap parameters below.")
     st.divider()
     
-    st.subheader("📄 Upload Profile")
+    st.subheader("Upload Profile")
     resume_file = st.file_uploader("Upload Resume (PDF/DOCX/TXT)", type=['pdf', 'docx', 'txt'])
     
     st.divider()
-    st.subheader("🎯 Target Job Description")
+    st.subheader("Target Job Description")
     use_sample = st.checkbox("Use Sample JDs", value=False)
     if use_sample:
         jd_choice = st.selectbox("Select Sample", ["Software Engineer", "Data Scientist"])
@@ -98,12 +98,12 @@ with st.sidebar:
         jd_text = st.text_area("Paste Job Description Here", height=200)
         
     st.divider()
-    st.subheader("⏱️ Constraints")
+    st.subheader("Constraints")
     target_weeks = st.slider("Target Timeframe (Weeks)", min_value=1, max_value=24, value=DEFAULT_WEEKS)
     weekly_hours = st.slider("Weekly Study Hours", min_value=2, max_value=40, value=DEFAULT_HOURS_PER_WEEK)
     
     st.divider()
-    process_btn = st.button("🚀 Generate Roadmap", type="primary", use_container_width=True)
+    process_btn = st.button("Generate Roadmap", type="primary", use_container_width=True)
 
 if process_btn:
     if not resume_file and not use_sample:
@@ -191,9 +191,9 @@ if process_btn:
             st.subheader("Skill Gap Analysis")
             
             all_skills = []
-            for s, p in evaluated["mastered"]: all_skills.append({"Skill": s, "Status": "Mastered", "Icon": "✅", "Class": "status-mastered"})
-            for s, p in evaluated["partial"]: all_skills.append({"Skill": s, "Status": "Partial Gap", "Icon": "⚠️", "Class": "status-partial"})
-            for s, p in evaluated["missing"]: all_skills.append({"Skill": s, "Status": "Critical Gap", "Icon": "❌", "Class": "status-critical"})
+            for s, p in evaluated["mastered"]: all_skills.append({"Skill": s, "Status": "Mastered", "Class": "status-mastered"})
+            for s, p in evaluated["partial"]: all_skills.append({"Skill": s, "Status": "Partial Gap", "Class": "status-partial"})
+            for s, p in evaluated["missing"]: all_skills.append({"Skill": s, "Status": "Critical Gap", "Class": "status-critical"})
             
             # Display as cards in columns
             cols = st.columns(3)
@@ -203,7 +203,7 @@ if process_btn:
                 <div class="skill-card">
                     <div class="skill-title">{skill['Skill']}</div>
                     <div class="skill-status {skill['Class']}">
-                        {skill['Icon']} {skill['Status']}
+                        {skill['Status']}
                     </div>
                 </div>
                 """

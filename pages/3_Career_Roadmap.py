@@ -5,7 +5,6 @@ from utils.sidebar import render_sidebar
 
 st.set_page_config(
     page_title="UpCareer AI - Career Roadmap",
-    page_icon="🗺️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -17,7 +16,7 @@ st.markdown("""
     <div style='display:inline-flex;align-items:center;gap:0.4rem;background:rgba(72,199,142,0.10);
         border:1px solid rgba(72,199,142,0.25);border-radius:20px;padding:0.22rem 0.75rem;
         font-size:0.8rem;font-weight:600;color:#48C78E;margin-bottom:0.6rem;'>
-        🗺️ &nbsp;Personalized Milestone Engine
+        Personalized Milestone Engine
     </div>
     <div style='font-family:Outfit,sans-serif;font-size:2rem;font-weight:800;color:#FFFFFF;
         letter-spacing:-0.5px;margin:0 0 0.4rem 0;'>
@@ -30,7 +29,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 if not st.session_state.get("analysis_complete", False):
-    st.warning("⚠️ No resume profile found! Please run your analysis on the **Resume Analysis** page first.")
+    st.warning("No resume profile found! Please run your analysis on the **Resume Analysis** page first.")
     st.stop()
 
 target_role = st.session_state.get("target_role", "Software Engineer")
@@ -60,7 +59,7 @@ def get_verified_course_link(skill_name: str) -> tuple[str, str]:
 
 missing_skills = evaluated.get("missing", [])
 if not missing_skills:
-    st.success("🎉 Outstanding! You have no missing critical skills for your target role.")
+    st.success("Outstanding! You have no missing critical skills for your target role.")
 else:
     st.markdown(f"### Action Plan for Target Role: **{target_role}**")
     study_bandwidth = st.session_state.get("study_bandwidth", 10)
@@ -68,9 +67,9 @@ else:
 
     # BUG-01 fix: if bandwidth was just updated in Profile Settings, show recalculation notice
     if st.session_state.pop("roadmap_stale", False):
-        st.success(f"✅ Roadmap pacing recalculated! New bandwidth: **{study_bandwidth} hours/week**.")
+        st.success(f"Roadmap pacing recalculated! New bandwidth: **{study_bandwidth} hours/week**.")
 
-    st.info(f"⏱️ Based on your **{study_bandwidth} hours/week** study bandwidth, aim to spend about **{hours_per_skill} hours/week** on each skill module below.")
+    st.info(f"Based on your **{study_bandwidth} hours/week** study bandwidth, aim to spend about **{hours_per_skill} hours/week** on each skill module below.")
     st.markdown("Complete the modules below for each identified skill gap:")
 
     if "roadmap_progress" not in st.session_state:
@@ -95,7 +94,7 @@ else:
         p_status = st.session_state["roadmap_progress"].get(p_key, False)
         r_status = st.session_state["roadmap_progress"].get(r_key, False)
 
-        with st.expander(f"📌 {skill} — Action Required", expanded=False):
+        with st.expander(f"{skill} — Action Required", expanded=False):
             # 1. Take a Course (Using direct verified Udemy/Coursera links)
             course_title, course_url = get_verified_course_link(skill)
             st.markdown("#### 1. Take a Course")
@@ -120,9 +119,9 @@ else:
     # updates widget-bound keys automatically; we must NOT assign to them here).
     # Persist into roadmap_progress, which is the single source of truth that
     # the Progress Tracker syncs from on its page load.
-    if st.button("💾 Save Progress & Update Roadmap", type="primary"):
+    if st.button("Save Progress & Update Roadmap", type="primary"):
         for skill, c_key, p_key, r_key in skill_keys:
             st.session_state["roadmap_progress"][c_key] = st.session_state.get(c_key, False)
             st.session_state["roadmap_progress"][p_key] = st.session_state.get(p_key, False)
             st.session_state["roadmap_progress"][r_key] = st.session_state.get(r_key, False)
-        st.toast("✅ Roadmap progress saved successfully!", icon="🎉")
+        st.toast("Roadmap progress saved successfully.")

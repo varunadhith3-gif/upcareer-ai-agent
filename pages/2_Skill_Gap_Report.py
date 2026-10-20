@@ -6,7 +6,6 @@ from utils.sidebar import render_sidebar
 
 st.set_page_config(
     page_title="UpCareer AI - Skill Gap Report",
-    page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -152,7 +151,7 @@ hdr_left, hdr_right = st.columns([2.2, 1.8], gap="small")
 with hdr_left:
     st.markdown(
         "<div style='padding:1.4rem 0 0.3rem 0;'>"
-        "<div style='display:inline-flex;align-items:center;gap:0.4rem; background:rgba(255,193,7,0.10);border:1px solid rgba(255,193,7,0.25); border-radius:20px;padding:0.22rem 0.75rem;font-size:0.8rem;font-weight:600; color:#FFC107;margin-bottom:0.4rem;'>🎯 &nbsp;Skill Gap Analysis</div>"
+        "<div style='display:inline-flex;align-items:center;gap:0.4rem; background:rgba(255,193,7,0.10);border:1px solid rgba(255,193,7,0.25); border-radius:20px;padding:0.22rem 0.75rem;font-size:0.8rem;font-weight:600; color:#FFC107;margin-bottom:0.4rem;'>Skill Gap Analysis</div>"
         "<div style='font-family:Outfit,sans-serif;font-size:2rem;font-weight:800; color:#FFFFFF;letter-spacing:-0.5px;margin:0;'>Skill Gap Report</div></div>",
         unsafe_allow_html=True,
     )
@@ -195,12 +194,11 @@ st.markdown("<hr style='border:none;border-top:1px solid rgba(255,255,255,0.06);
 if not has_data:
     st.markdown(
         "<div style='background:#161616;border:1px solid rgba(255,255,255,0.06); border-radius:16px;padding:3.5rem 2rem;text-align:center;margin-top:1rem;'>"
-        "<div style='font-size:3rem;margin-bottom:1rem;'>📋</div>"
         "<div style='font-family:Outfit,sans-serif;font-size:1.3rem;font-weight:700; color:#FFFFFF;margin-bottom:0.5rem;'>No analysis yet</div>"
         "<div style='font-size:0.85rem;color:#777;max-width:420px;margin:0 auto 1.4rem auto; line-height:1.6;'>Upload your resume and click <strong style='color:#FFC107;'>Analyze resume</strong> to generate your live report.</div></div>",
         unsafe_allow_html=True,
     )
-    st.page_link("pages/1_Resume_Analysis.py", label="📄 Go to Resume Analysis", icon=None)
+    st.page_link("pages/1_Resume_Analysis.py", label="Go to Resume Analysis")
     st.stop()
 
 col_sub_left, col_sub_right = st.columns([3, 1], gap="small")
@@ -241,20 +239,18 @@ with col_gauge:
     st.markdown("<div style='font-size:0.73rem;color:#555;text-align:center; margin-top:-0.6rem;font-style:italic;padding-bottom:1rem;'>Algorithmic student score calculated via role-specific matching</div></div>", unsafe_allow_html=True)
 
 with col_breakdown:
-    cat_meta = {"Skills": "🛠️", "Experience": "💼", "Projects": "🗂️", "Education": "🎓", "Certifications": "📜"}
     bars_html = ""
     for cat, cat_score in cats.items():
-        icon = cat_meta.get(cat, "•")
         bar_block = (
             "<div style='margin-bottom:1.05rem;'>"
             "<div style='display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.3rem;'>"
-            "<span style='font-size:0.84rem;font-weight:600;color:#FFFFFF;'>{icon}&nbsp; {cat}</span>"
+            "<span style='font-size:0.84rem;font-weight:600;color:#FFFFFF;'>{cat}</span>"
             "<span style='font-size:0.84rem;font-weight:700;color:#FFC107;'>{score}</span>"
             "</div>"
             "<div style='background:rgba(255,255,255,0.07);border-radius:20px;height:6px; width:100%;overflow:hidden;margin-bottom:0.25rem;'>"
             "<div style='height:100%;border-radius:20px; background:linear-gradient(90deg,#FFC107 0%,#48C78E 100%);width:{pct}%;'></div>"
             "</div></div>"
-        ).format(icon=icon, cat=cat, score=cat_score, pct=cat_score)
+        ).format(cat=cat, score=cat_score, pct=cat_score)
         bars_html += bar_block
 
     breakdown_html = (
@@ -306,7 +302,7 @@ for cat in ["mastered", "partial", "missing"]:
 
 if borderline_skills:
     st.markdown("<div style='background:rgba(255,193,7,0.1); border:1px solid #FFC107; border-radius:12px; padding:1.2rem; margin-top:1rem;'>", unsafe_allow_html=True)
-    st.markdown("<strong style='color:#FFC107;'>\u26a0\ufe0f Human-in-the-Loop Review Required</strong><br><span style='font-size:0.9rem;'>We detected some borderline skill classifications. Please verify them:</span><br><br>", unsafe_allow_html=True)
+    st.markdown("<strong style='color:#FFC107;'>Human-in-the-Loop Review Required</strong><br><span style='font-size:0.9rem;'>We detected some borderline skill classifications. Please verify them:</span><br><br>", unsafe_allow_html=True)
     for idx, b_skill in enumerate(borderline_skills):
         cat, name, conf = b_skill
         col_b1, col_b2 = st.columns([3, 1])
@@ -354,13 +350,13 @@ if borderline_skills:
                 # Step 5: Mark roadmap stale so pacing banner fires on next visit
                 st.session_state["roadmap_stale"] = True
 
-                st.toast(f"\u2705 '{name}' confirmed as {cat}. Scores updated.", icon="\U0001f50d")
+                st.toast(f"'{name}' confirmed as {cat}. Scores updated.")
                 st.rerun()
     st.markdown("</div>", unsafe_allow_html=True)
 
 st.markdown("<div style='height:1.2rem;'></div>", unsafe_allow_html=True)
 
 fc1, fc2, fc3 = st.columns(3)
-with fc1: st.page_link("Home.py", label="📊 Dashboard", icon=None)
-with fc2: st.page_link("pages/1_Resume_Analysis.py", label="📄 Re-run Analysis", icon=None)
-with fc3: st.page_link("pages/3_Career_Roadmap.py", label="🗺️ Career Roadmap", icon=None)
+with fc1: st.page_link("Home.py", label="Dashboard")
+with fc2: st.page_link("pages/1_Resume_Analysis.py", label="Re-run Analysis")
+with fc3: st.page_link("pages/3_Career_Roadmap.py", label="Career Roadmap")
