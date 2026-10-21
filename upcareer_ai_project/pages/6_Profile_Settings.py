@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import os
 from utils.sidebar import render_sidebar
+from utils.sahara_theme import apply_sahara_theme
 
 st.set_page_config(
     page_title="UpCareer AI - Profile Settings",
@@ -13,45 +14,15 @@ st.set_page_config(
 if not st.session_state.get("logged_in", False):
     st.switch_page("Home.py")
 
+apply_sahara_theme()
 render_sidebar()
-
-# ── Page-level CSS ────────────────────────────────────────────────────────────
-st.markdown("""
-<style>
-.settings-card {
-    background: #161616;
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 12px;
-    padding: 2rem;
-    margin-bottom: 1.5rem;
-}
-.section-title {
-    font-family: 'Outfit', sans-serif;
-    font-size: 1.3rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-    color: #FFF;
-}
-.danger-zone {
-    border: 1px solid rgba(255,82,82,0.3);
-    background: rgba(255,82,82,0.05);
-}
-</style>
-""", unsafe_allow_html=True)
 
 # ── Header ────────────────────────────────────────────────────────────────────
 st.markdown("""
-<div style='padding:2rem 0 1.4rem 0;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:1.8rem;'>
-    <div style='display:inline-flex;align-items:center;gap:0.4rem;background:rgba(255,193,7,0.10);
-        border:1px solid rgba(255,193,7,0.25);border-radius:20px;padding:0.22rem 0.75rem;
-        font-size:0.8rem;font-weight:600;color:#FFC107;margin-bottom:0.6rem;'>
-        Account Management
-    </div>
-    <div style='font-family:Outfit,sans-serif;font-size:2rem;font-weight:800;color:#FFFFFF;
-        letter-spacing:-0.5px;margin:0 0 0.4rem 0;'>
-        Profile Settings
-    </div>
-    <div style='font-size:0.84rem;color:#888;max-width:620px;line-height:1.6;'>
+<div class="sahara-header">
+    <div class="sahara-pill">Account Management</div>
+    <div class="sahara-title">Profile Settings</div>
+    <div class="sahara-subtitle">
         Manage your profile, target roles, study bandwidth, and account security preferences.
     </div>
 </div>
@@ -81,8 +52,9 @@ if "study_bandwidth" not in st.session_state:
         st.session_state["study_bandwidth"] = 10
 
 # ── 1. Personal & Role Preferences ────────────────────────────────────────────
-st.markdown('<div class="settings-card">', unsafe_allow_html=True)
-st.markdown('<div class="section-title">Personal & Career Preferences</div>', unsafe_allow_html=True)
+st.markdown('<div class="sahara-card">', unsafe_allow_html=True)
+st.markdown('<div class="sahara-sublabel">ACCOUNT &amp; CAREER</div>', unsafe_allow_html=True)
+st.markdown('<div style="font-family:\'EB Garamond\',Georgia,serif;font-size:1.55rem;font-weight:600;color:#26211C;margin-bottom:1.2rem;">Personal &amp; Career Preferences</div>', unsafe_allow_html=True)
 
 current_email = st.session_state.get("user_email", "")
 
@@ -102,7 +74,22 @@ with st.form("profile_form"):
     role_idx = role_options.index(current_role)
     
     new_role = st.selectbox("Target Career Role", options=role_options, index=role_idx)
-    study_hours = st.slider("Weekly Study Bandwidth (Hours)", min_value=2, max_value=40, value=st.session_state.get("study_bandwidth", 10), step=2)
+    study_hours = st.slider(
+        "Weekly Study Bandwidth (Hours)",
+        min_value=2,
+        max_value=40,
+        value=st.session_state.get("study_bandwidth", 10),
+        step=2,
+        help="Allocates hours per week to calculate personalized module pacing."
+    )
+    
+    # Extra high-contrast marker row reinforcing min and max values
+    st.markdown("""
+    <div style="display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 0.95rem; font-weight: 800; color: #26211C; margin-top: -0.4rem; margin-bottom: 0.8rem; padding: 0 0.2rem;">
+        <span>Min: 2 Hours</span>
+        <span>Max: 40 Hours</span>
+    </div>
+    """, unsafe_allow_html=True)
     
     if st.form_submit_button("Save Settings", use_container_width=True):
         prev_bandwidth = st.session_state.get("study_bandwidth", 10)
@@ -128,9 +115,10 @@ with st.form("profile_form"):
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ── 2. Data Management (Danger Zone) ──────────────────────────────────────────
-st.markdown('<div class="settings-card danger-zone">', unsafe_allow_html=True)
-st.markdown('<div class="section-title" style="color:#FF5252;">Danger Zone</div>', unsafe_allow_html=True)
-st.write("Wipe your current resume analysis, score breakdowns, and roadmap checklist state to start fresh.")
+st.markdown('<div class="sahara-card" style="border: 1.5px solid #DC2626; background: #FFF5F5;">', unsafe_allow_html=True)
+st.markdown('<div class="sahara-sublabel" style="color: #DC2626;">DANGER ZONE</div>', unsafe_allow_html=True)
+st.markdown('<div style="font-family:\'EB Garamond\',Georgia,serif;font-size:1.55rem;font-weight:600;color:#991B1B;margin-bottom:0.4rem;">Reset Profile Data</div>', unsafe_allow_html=True)
+st.markdown('<p style="color:#7F1D1D;font-size:0.92rem;margin-bottom:1.1rem;">Wipe your current resume analysis, score breakdowns, and roadmap checklist state to start fresh.</p>', unsafe_allow_html=True)
 
 if st.button("Reset All Analysis & Progress Data"):
     keys_to_wipe = [
@@ -147,9 +135,10 @@ if st.button("Reset All Analysis & Progress Data"):
 st.markdown('</div>', unsafe_allow_html=True)
 
 # ── 3. Session Management ─────────────────────────────────────────────────────
-st.markdown('<div class="settings-card">', unsafe_allow_html=True)
-st.markdown('<div class="section-title">Session Management</div>', unsafe_allow_html=True)
-st.write("Securely sign out of your local session.")
+st.markdown('<div class="sahara-card">', unsafe_allow_html=True)
+st.markdown('<div class="sahara-sublabel">ACCOUNT SECURITY</div>', unsafe_allow_html=True)
+st.markdown('<div style="font-family:\'EB Garamond\',Georgia,serif;font-size:1.55rem;font-weight:600;color:#26211C;margin-bottom:0.4rem;">Session Management</div>', unsafe_allow_html=True)
+st.markdown('<p style="color:#4a423a;font-size:0.92rem;margin-bottom:1.1rem;">Securely sign out of your local session.</p>', unsafe_allow_html=True)
 
 if st.button("Sign Out", type="primary", use_container_width=True):
     st.session_state.clear()

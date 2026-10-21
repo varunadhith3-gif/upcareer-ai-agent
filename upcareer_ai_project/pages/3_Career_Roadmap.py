@@ -2,6 +2,7 @@ import streamlit as st
 import json
 import os
 from utils.sidebar import render_sidebar
+from utils.sahara_theme import apply_sahara_theme
 
 st.set_page_config(
     page_title="UpCareer AI - Career Roadmap",
@@ -9,20 +10,14 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+apply_sahara_theme()
 render_sidebar()
 
 st.markdown("""
-<div style='padding:2rem 0 1.4rem 0;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:1.8rem;'>
-    <div style='display:inline-flex;align-items:center;gap:0.4rem;background:rgba(72,199,142,0.10);
-        border:1px solid rgba(72,199,142,0.25);border-radius:20px;padding:0.22rem 0.75rem;
-        font-size:0.8rem;font-weight:600;color:#48C78E;margin-bottom:0.6rem;'>
-        Personalized Milestone Engine
-    </div>
-    <div style='font-family:Outfit,sans-serif;font-size:2rem;font-weight:800;color:#FFFFFF;
-        letter-spacing:-0.5px;margin:0 0 0.4rem 0;'>
-        Career Roadmap & Action Plan
-    </div>
-    <div style='font-size:0.84rem;color:#888;max-width:650px;line-height:1.6;'>
+<div class="sahara-header">
+    <div class="sahara-pill">Personalized Milestone Engine</div>
+    <div class="sahara-title">Career Roadmap &amp; Action Plan</div>
+    <div class="sahara-subtitle">
         Step-by-step milestones tailored to bridge your skill gaps and target your desired role.
     </div>
 </div>
@@ -61,7 +56,6 @@ missing_skills = evaluated.get("missing", [])
 if not missing_skills:
     st.success("Outstanding! You have no missing critical skills for your target role.")
 else:
-    st.markdown(f"### Action Plan for Target Role: **{target_role}**")
     study_bandwidth = st.session_state.get("study_bandwidth", 10)
     hours_per_skill = max(1, study_bandwidth // len(missing_skills))
 
@@ -69,8 +63,18 @@ else:
     if st.session_state.pop("roadmap_stale", False):
         st.success(f"Roadmap pacing recalculated! New bandwidth: **{study_bandwidth} hours/week**.")
 
-    st.info(f"Based on your **{study_bandwidth} hours/week** study bandwidth, aim to spend about **{hours_per_skill} hours/week** on each skill module below.")
-    st.markdown("Complete the modules below for each identified skill gap:")
+    st.markdown(f"""
+    <div class="sahara-card" style="margin-bottom: 1.25rem;">
+        <div class="sahara-sublabel">TARGET ROLE MILESTONES</div>
+        <div style="font-family:'EB Garamond',Georgia,serif;font-size:1.55rem;font-weight:600;color:#26211C;margin-bottom:0.4rem;">
+            Action Plan for {target_role}
+        </div>
+        <div style="font-size:0.92rem;color:#4a423a;line-height:1.6;">
+            Based on your <strong>{study_bandwidth} hours/week</strong> study bandwidth, aim to spend about <strong>{hours_per_skill} hours/week</strong> on each skill module below.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    st.markdown("<div class='sahara-sublabel' style='margin-bottom:0.6rem;'>SKILL MODULES &amp; TASKS</div>", unsafe_allow_html=True)
 
     if "roadmap_progress" not in st.session_state:
         st.session_state["roadmap_progress"] = {}

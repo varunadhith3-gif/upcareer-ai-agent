@@ -13,30 +13,25 @@ from core.mentor_tools import (
     SUPPORTED_ROLES,
 )
 from utils.sidebar import render_sidebar
+from utils.sahara_theme import apply_sahara_theme
 
 st.set_page_config(
-    page_title="AI Career Mentor - UpCareer AI",
+    page_title="UpCareer AI - AI Career Mentor",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
+apply_sahara_theme()
 render_sidebar()
 
 # ---------------------------------------------------------------------------
 # Page header
 # ---------------------------------------------------------------------------
 st.markdown("""
-<div style='padding:2rem 0 1.4rem 0;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:1.8rem;'>
-    <div style='display:inline-flex;align-items:center;gap:0.4rem;background:rgba(99,102,241,0.10);
-        border:1px solid rgba(99,102,241,0.28);border-radius:20px;padding:0.22rem 0.75rem;
-        font-size:0.8rem;font-weight:600;color:#818CF8;margin-bottom:0.6rem;'>
-        Powered by Amazon Nova Micro
-    </div>
-    <div style='font-family:Outfit,sans-serif;font-size:2rem;font-weight:800;color:#FFFFFF;
-        letter-spacing:-0.5px;margin:0 0 0.4rem 0;'>
-        AI Career Mentor
-    </div>
-    <div style='font-size:0.84rem;color:#888;max-width:680px;line-height:1.6;'>
+<div class="sahara-header">
+    <div class="sahara-pill">Powered by Amazon Nova Micro</div>
+    <div class="sahara-title">AI Career Mentor</div>
+    <div class="sahara-subtitle">
         Ask anything about your career path, interview prep, or skill gaps.
         Tell the mentor to <em>switch your target role</em> and it will instantly
         update your roadmap &amp; progress tracker — no page reload needed.
@@ -60,8 +55,8 @@ if st.session_state.get("analysis_complete", False):
                      for s in evaluated.get("missing", [])]
         if missing:
             st.markdown(
-                "<span style='font-size:0.8rem;color:#FF5252;font-weight:600;'>Missing skills: </span>"
-                f"<span style='font-size:0.8rem;color:#AAA;'>{', '.join(missing)}</span>",
+                "<span style='font-size:0.86rem;color:#DC2626;font-weight:700;'>Missing skills: </span>"
+                f"<span style='font-size:0.86rem;color:#26211C;font-weight:600;'>{', '.join(missing)}</span>",
                 unsafe_allow_html=True,
             )
 else:
@@ -142,14 +137,13 @@ pending_role = st.session_state.get("mentor_pending_role")
 if pending_role:
     st.markdown(
         f"""
-        <div style='background:rgba(72,199,142,0.10);border:1px solid rgba(72,199,142,0.30);
-            border-radius:12px;padding:1rem 1.2rem;margin-bottom:1.2rem;'>
-            <strong style='color:#48C78E;'>Career path change detected</strong><br>
-            <span style='color:#CCC;font-size:0.9rem;'>
+        <div style='background:#FFFFFF;border:1.5px solid #C2652A;border-radius:8px;padding:1.2rem 1.4rem;margin-bottom:1.2rem;box-shadow:0 2px 8px rgba(194,101,42,0.12);'>
+            <div style='font-family:"JetBrains Mono",monospace;font-size:0.84rem;font-weight:800;color:#C2652A;letter-spacing:0.04em;text-transform:uppercase;'>Career Path Change Detected</div>
+            <div style='color:#38322c;font-size:0.95rem;margin-top:0.35rem;line-height:1.5;'>
                 The mentor suggested switching your target role to
-                <strong style='color:#FFC107;'>{pending_role}</strong>.
+                <strong style='color:#C2652A;'>{pending_role}</strong>.
                 Apply this change to sync your Roadmap &amp; Progress Tracker?
-            </span>
+            </div>
         </div>
         """,
         unsafe_allow_html=True,

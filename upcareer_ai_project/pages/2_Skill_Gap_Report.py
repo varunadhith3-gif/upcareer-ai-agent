@@ -3,6 +3,7 @@ import plotly.graph_objects as go
 import google.generativeai as genai
 import json
 from utils.sidebar import render_sidebar
+from utils.sahara_theme import apply_sahara_theme
 
 st.set_page_config(
     page_title="UpCareer AI - Skill Gap Report",
@@ -10,13 +11,14 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+apply_sahara_theme()
 render_sidebar()
 
 def _badge(score: int) -> tuple[str, str]:
-    if score >= 80: return "Strong", "#48C78E"
-    elif score >= 60: return "Good", "#FFC107"
-    elif score >= 40: return "Fair", "#FF9800"
-    else: return "Early Stage", "#FF5252"
+    if score >= 80: return "Strong", "#16A34A"
+    elif score >= 60: return "Good", "#C2652A"
+    elif score >= 40: return "Fair", "#D97706"
+    else: return "Early Stage", "#DC2626"
 
 def evaluate_role_fit(resume_text, target_role):
     """Calculates a unique, role-specific score and breakdown for the selected job."""
@@ -150,17 +152,20 @@ hdr_left, hdr_right = st.columns([2.2, 1.8], gap="small")
 
 with hdr_left:
     st.markdown(
-        "<div style='padding:1.4rem 0 0.3rem 0;'>"
-        "<div style='display:inline-flex;align-items:center;gap:0.4rem; background:rgba(255,193,7,0.10);border:1px solid rgba(255,193,7,0.25); border-radius:20px;padding:0.22rem 0.75rem;font-size:0.8rem;font-weight:600; color:#FFC107;margin-bottom:0.4rem;'>Skill Gap Analysis</div>"
-        "<div style='font-family:Outfit,sans-serif;font-size:2rem;font-weight:800; color:#FFFFFF;letter-spacing:-0.5px;margin:0;'>Skill Gap Report</div></div>",
+        """
+        <div class="sahara-header" style="border-bottom:none;padding-bottom:0;margin-bottom:0;">
+            <div class="sahara-pill">Skill Gap Analysis</div>
+            <div class="sahara-title">Skill Gap Report</div>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
 
 with hdr_right:
-    st.markdown("<div style='padding-top:1.2rem;'>", unsafe_allow_html=True)
+    st.markdown("<div style='padding-top:1.6rem;'>", unsafe_allow_html=True)
+    st.markdown("<div class='sahara-sublabel' style='margin-bottom:0.35rem;'>SWITCH TARGET ROLE</div>", unsafe_allow_html=True)
 
-    # Seed the widget's own state ONCE. After this, Streamlit owns "role_selector"
-    # and we never fight it with a recomputed `index=` on every rerun.
+    # Seed the widget's own state ONCE.
     if "role_selector" not in st.session_state:
         st.session_state["role_selector"] = st.session_state.get("target_role", "Software Engineer")
 
@@ -189,13 +194,19 @@ jd_skills = match_results.get("jd_skills", [])
 
 badge_label, badge_color = _badge(score)
 
-st.markdown("<hr style='border:none;border-top:1px solid rgba(255,255,255,0.06); margin:0.8rem 0 1.6rem 0;'>", unsafe_allow_html=True)
+st.markdown("<hr style='border:none;border-top:1px solid #E8DFD5; margin:0.8rem 0 1.6rem 0;'>", unsafe_allow_html=True)
 
 if not has_data:
     st.markdown(
-        "<div style='background:#161616;border:1px solid rgba(255,255,255,0.06); border-radius:16px;padding:3.5rem 2rem;text-align:center;margin-top:1rem;'>"
-        "<div style='font-family:Outfit,sans-serif;font-size:1.3rem;font-weight:700; color:#FFFFFF;margin-bottom:0.5rem;'>No analysis yet</div>"
-        "<div style='font-size:0.85rem;color:#777;max-width:420px;margin:0 auto 1.4rem auto; line-height:1.6;'>Upload your resume and click <strong style='color:#FFC107;'>Analyze resume</strong> to generate your live report.</div></div>",
+        """
+        <div class="sahara-card" style="text-align:center;padding:3.5rem 2rem;margin-top:1.5rem;">
+            <div class="sahara-pill">Evaluation Pending</div>
+            <div class="sahara-title" style="font-size:2rem;margin-bottom:0.5rem;">No Analysis Yet</div>
+            <div class="sahara-subtitle" style="margin:0 auto 1.5rem auto;">
+                Upload your resume and click <strong style="color:#C2652A;">Analyze Resume</strong> on the Resume Analysis page to generate your live report.
+            </div>
+        </div>
+        """,
         unsafe_allow_html=True,
     )
     st.page_link("pages/1_Resume_Analysis.py", label="Go to Resume Analysis")
@@ -203,10 +214,10 @@ if not has_data:
 
 col_sub_left, col_sub_right = st.columns([3, 1], gap="small")
 with col_sub_left:
-    st.markdown(f"<div style='font-size:0.85rem;color:#888;margin-bottom:1.2rem;'>Active evaluation profile for <strong style='color:#DDD;'>{role}</strong> with role-specific skill mapping.</div>", unsafe_allow_html=True)
+    st.markdown(f"<div style='font-size:0.95rem;color:#4a423a;margin-bottom:1.2rem;font-weight:500;'>Active evaluation profile for <strong style='color:#26211C;'>{role}</strong> with role-specific skill mapping.</div>", unsafe_allow_html=True)
 with col_sub_right:
     st.markdown(
-        f"<div style='display:inline-block;background:{badge_color}22; border:1px solid {badge_color}55;border-radius:20px;padding:0.25rem 0.8rem; font-size:0.8rem;font-weight:700;color:{badge_color};text-align:center;width:100%;margin-bottom:0.5rem;'>● &nbsp;{badge_label}</div>",
+        f"<div style='display:inline-block;background:{badge_color}18; border:1.5px solid {badge_color}55;border-radius:20px;padding:0.25rem 0.8rem; font-size:0.75rem;font-weight:700;font-family:\"JetBrains Mono\",monospace;color:{badge_color};text-align:center;width:100%;margin-bottom:0.5rem;letter-spacing:0.04em;text-transform:uppercase;'>STATUS: {badge_label}</div>",
         unsafe_allow_html=True,
     )
 
@@ -214,53 +225,56 @@ col_gauge, col_breakdown = st.columns([1, 1.55], gap="large")
 
 with col_gauge:
     st.markdown(
-        "<div style='background:#161616;border:1px solid rgba(255,255,255,0.06); border-radius:16px;padding:1.5rem 1.6rem 0.8rem 1.6rem;'>"
-        "<div style='font-family:Outfit,sans-serif;font-size:0.78rem;font-weight:700; letter-spacing:0.08em;text-transform:uppercase;color:#A0A0A0; margin-bottom:0.2rem;'>Career Readiness Score</div>"
-        f"<div style='font-family:Outfit,sans-serif;font-size:1.1rem;font-weight:700; color:#FFFFFF;margin-bottom:0.6rem;'>{role}</div>",
+        f"""
+        <div class="dash-card">
+            <div class="dash-card-title">Career Readiness Score</div>
+            <div class="dash-card-role">{role}</div>
+        """,
         unsafe_allow_html=True,
     )
 
     fig = go.Figure(go.Indicator(
         mode="gauge+number",
         value=score,
-        number={"font": {"size": 52, "color": "#FFFFFF", "family": "Outfit, sans-serif"}},
+        number={"font": {"size": 52, "color": "#26211C", "family": "EB Garamond, Georgia, serif"}},
         gauge={
             "axis": {"range": [0, 100], "tickwidth": 0, "tickcolor": "rgba(0,0,0,0)", "showticklabels": False},
-            "bar": {"color": "#FFC107", "thickness": 0.72},
+            "bar": {"color": "#C2652A", "thickness": 0.72},
             "bgcolor": "rgba(0,0,0,0)",
             "borderwidth": 0,
-            "steps": [{"range": [0, 100], "color": "#272727"}],
-            "threshold": {"line": {"color": "#48C78E", "width": 4}, "thickness": 0.85, "value": score},
+            "steps": [{"range": [0, 100], "color": "#F4EFEA"}],
+            "threshold": {"line": {"color": "#16A34A", "width": 4}, "thickness": 0.85, "value": score},
         },
         domain={"x": [0, 1], "y": [0, 1]},
     ))
     fig.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", height=260, margin=dict(t=30, b=10, l=20, r=20))
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
-    st.markdown("<div style='font-size:0.73rem;color:#555;text-align:center; margin-top:-0.6rem;font-style:italic;padding-bottom:1rem;'>Algorithmic student score calculated via role-specific matching</div></div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-size:0.8rem;color:#4a423a;text-align:center; margin-top:-0.4rem;font-style:italic;padding-bottom:0.5rem;font-weight:500;'>Algorithmic candidate score calculated via role-specific matching</div></div>", unsafe_allow_html=True)
 
 with col_breakdown:
     bars_html = ""
     for cat, cat_score in cats.items():
         bar_block = (
             "<div style='margin-bottom:1.05rem;'>"
-            "<div style='display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.3rem;'>"
-            "<span style='font-size:0.84rem;font-weight:600;color:#FFFFFF;'>{cat}</span>"
-            "<span style='font-size:0.84rem;font-weight:700;color:#FFC107;'>{score}</span>"
+            "<div style='display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.35rem;'>"
+            "<span style='font-size:0.88rem;font-weight:600;color:#26211C;'>{cat}</span>"
+            "<span style='font-size:0.88rem;font-weight:800;font-family:\"JetBrains Mono\",monospace;color:#C2652A;'>{score}%</span>"
             "</div>"
-            "<div style='background:rgba(255,255,255,0.07);border-radius:20px;height:6px; width:100%;overflow:hidden;margin-bottom:0.25rem;'>"
-            "<div style='height:100%;border-radius:20px; background:linear-gradient(90deg,#FFC107 0%,#48C78E 100%);width:{pct}%;'></div>"
+            "<div style='background:#F4EFEA;border-radius:20px;height:8px; width:100%;overflow:hidden;margin-bottom:0.25rem;border:1px solid #E8DFD5;'>"
+            "<div style='height:100%;border-radius:20px; background:linear-gradient(90deg,#C2652A 0%,#16A34A 100%);width:{pct}%;'></div>"
             "</div></div>"
         ).format(cat=cat, score=cat_score, pct=cat_score)
         bars_html += bar_block
 
     breakdown_html = (
-        "<div style='background:#161616;border:1px solid rgba(255,255,255,0.06); border-radius:16px;padding:1.5rem 1.6rem 1.2rem 1.6rem;'>"
-        "<div style='font-family:Outfit,sans-serif;font-size:1.15rem;font-weight:700; color:#FFFFFF;margin-bottom:1.1rem;'>Score breakdown</div>"
+        "<div class='dash-card'>"
+        "<div class='dash-card-title'>Score Breakdown</div>"
+        "<div class='dash-card-role' style='font-size:1.35rem;margin-bottom:1rem;'>Live Competency Scores</div>"
         + bars_html + "</div>"
     )
     st.markdown(breakdown_html, unsafe_allow_html=True)
 
-st.markdown("<div style='font-family:Outfit,sans-serif;font-size:1.15rem;font-weight:700; color:#FFFFFF;margin-top:2rem;margin-bottom:1rem;'>Skill Gap Priorities & Human Verification (Stage 5)</div>", unsafe_allow_html=True)
+st.markdown("<div style='font-family:\"EB Garamond\",Georgia,serif;font-size:1.45rem;font-weight:600; color:#26211C;margin-top:2rem;margin-bottom:1rem;'>Skill Gap Priorities & Human Verification</div>", unsafe_allow_html=True)
 
 # 1. Priority Scoring based on mock market weights
 market_weights = {
@@ -281,15 +295,16 @@ for skill_data in missing_skills:
 if prioritized_missing:
     p_col1, p_col2 = st.columns([1, 1])
     with p_col1:
-        st.markdown("<div style='background:#161616;border:1px solid rgba(255,255,255,0.06); border-radius:12px;padding:1.2rem;'><strong>Market-Weighted Priorities</strong><br>", unsafe_allow_html=True)
+        st.markdown("""
+        <div class="sahara-card">
+            <div style="font-family:'EB Garamond',serif;font-size:1.25rem;font-weight:600;color:#26211C;margin-bottom:0.6rem;">Market-Weighted Priorities</div>
+        """, unsafe_allow_html=True)
         for ps in sorted(prioritized_missing, key=lambda x: {"High":3, "Medium":2, "Low":1}[x["priority"]], reverse=True):
-            color = "#FF5252" if ps["priority"] == "High" else "#FFC107" if ps["priority"] == "Medium" else "#48C78E"
-            st.markdown(f"- **{ps['name']}** <span style='color:{color};'>({ps['priority']})</span>", unsafe_allow_html=True)
+            color = "#DC2626" if ps["priority"] == "High" else "#C2652A" if ps["priority"] == "Medium" else "#16A34A"
+            st.markdown(f"- **{ps['name']}** <span style='color:{color};font-family:\"JetBrains Mono\",monospace;font-size:0.85rem;font-weight:700;'>({ps['priority']})</span>", unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
 # 2. Human-in-the-Loop Review for borderline confidence (< 0.6)
-# BUG-02 fix: confirmed skills tracked in session_state["hitl_confirmed"]
-# to prevent re-display and ensure downstream state is fully propagated.
 if "hitl_confirmed" not in st.session_state:
     st.session_state["hitl_confirmed"] = []
 
@@ -301,8 +316,11 @@ for cat in ["mastered", "partial", "missing"]:
             borderline_skills.append((cat, skill_name_check, skill_data[1]))
 
 if borderline_skills:
-    st.markdown("<div style='background:rgba(255,193,7,0.1); border:1px solid #FFC107; border-radius:12px; padding:1.2rem; margin-top:1rem;'>", unsafe_allow_html=True)
-    st.markdown("<strong style='color:#FFC107;'>Human-in-the-Loop Review Required</strong><br><span style='font-size:0.9rem;'>We detected some borderline skill classifications. Please verify them:</span><br><br>", unsafe_allow_html=True)
+    st.markdown("""
+    <div class="sahara-card" style="background:#F4EFEA;border:1.5px solid #E8DFD5;margin-top:1rem;">
+        <div style="font-family:'EB Garamond',serif;font-size:1.25rem;font-weight:600;color:#26211C;margin-bottom:0.3rem;">Human-in-the-Loop Review Required</div>
+        <div style="font-size:0.92rem;color:#4a423a;margin-bottom:1rem;font-weight:500;">We detected borderline skill classifications that benefit from your verification:</div>
+    """, unsafe_allow_html=True)
     for idx, b_skill in enumerate(borderline_skills):
         cat, name, conf = b_skill
         col_b1, col_b2 = st.columns([3, 1])
@@ -316,7 +334,7 @@ if borderline_skills:
                     for s in st.session_state["match_results"]["evaluated"][cat]
                 ]
 
-                # Step 2: Record this skill as confirmed (prevents re-display on rerun)
+                # Step 2: Record this skill as confirmed
                 confirmed = st.session_state.get("hitl_confirmed", [])
                 if name not in confirmed:
                     confirmed.append(name)

@@ -33,60 +33,95 @@ def render_sidebar():
         # Streamlit converts filename spaces/underscores to URL slugs
         return "/" + stem.replace(" ", "_")
 
-    # ── Custom CSS ──────────────────────────────────────────────────────────
+    # ── Custom CSS for Sidebar & Global Navigation ──────────────────────────
     custom_css = """
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+    /* ── Hide broken keyboard_double artifact and collapse control ───── */
+    [data-testid="stSidebarCollapseButton"],
+    [data-testid="stSidebarHeader"],
+    header[data-testid="stSidebarHeader"],
+    [data-testid="stSidebarHeader"] button,
+    [data-testid="stSidebarHeader"] *,
+    button[kind="headerNoPadding"],
+    [data-testid="collapsedControl"],
+    button[aria-label="Close sidebar"],
+    button[aria-label="Open sidebar"],
+    button[aria-label*="sidebar" i] {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        width: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        overflow: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
 
-    /* ── App-wide foundation ─────────────────────────── */
-    [data-testid="stAppViewContainer"] {
-        background-color: #0D0D0D !important;
-        font-family: 'Inter', sans-serif !important;
-    }
-    [data-testid="stHeader"] {
-        background-color: rgba(13,13,13,0.85) !important;
-        backdrop-filter: blur(12px) !important;
-        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
-    }
-    [data-testid="stMainBlockContainer"] {
-        background-color: #0D0D0D !important;
+    .material-symbols-rounded,
+    .material-symbols-outlined,
+    .material-icons,
+    [data-testid="stIconMaterial"] {
+        font-family: 'Material Symbols Rounded', 'Material Symbols Outlined', 'Material Icons' !important;
+        font-feature-settings: 'liga' 1 !important;
     }
 
     /* ── Sidebar shell ───────────────────────────────── */
     [data-testid="stSidebar"] {
-        background-color: #161616 !important;
-        border-right: 1px solid rgba(255,255,255,0.05) !important;
+        background-color: #F4EFEA !important;
+        border-right: 1px solid #E8DFD5 !important;
     }
     [data-testid="stSidebarUserContent"] {
         display: flex !important;
         flex-direction: column !important;
-        min-height: 93vh !important;
+        min-height: 94vh !important;
+        padding: 1.2rem 0.9rem !important;
     }
 
     /* ── Sidebar header ──────────────────────────────── */
     .sb-header {
-        padding: 1.5rem 0.5rem 1.2rem 0.5rem;
-        border-bottom: 1px solid rgba(255,255,255,0.06);
-        margin-bottom: 0.75rem;
+        padding: 0.8rem 0.4rem 1.2rem 0.4rem;
+        border-bottom: 1px solid #E8DFD5;
+        margin-bottom: 1rem;
     }
     .sb-logo-row {
         display: flex;
         align-items: center;
         gap: 0.55rem;
     }
-    .sb-logo   { font-size: 1.9rem; line-height: 1; }
-    .sb-title  {
-        font-size: 1.35rem;
-        font-weight: 800;
-        font-family: 'Outfit', sans-serif;
-        color: #FFFFFF;
-        letter-spacing: -0.4px;
+    .sb-title {
+        font-size: 1.55rem;
+        font-weight: 600;
+        font-family: 'EB Garamond', Georgia, serif;
+        color: #26211C;
+        letter-spacing: -0.015em;
+    }
+    .sb-title span {
+        color: #C2652A;
+        font-style: italic;
+    }
+    .sb-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        background-color: rgba(194, 101, 42, 0.08);
+        border: 1px solid rgba(194, 101, 42, 0.28);
+        border-radius: 12px;
+        padding: 0.18rem 0.6rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        font-family: 'JetBrains Mono', monospace;
+        color: #C2652A;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        margin-top: 0.35rem;
     }
     .sb-subtitle {
-        font-size: 0.75rem;
-        color: #A0A0A0;
-        margin-top: 0.25rem;
-        margin-left: 0.1rem;
+        font-size: 0.82rem;
+        color: #4a423a;
+        font-weight: 600;
+        margin-top: 0.3rem;
+        font-family: 'Manrope', sans-serif;
     }
 
     /* ── Nav items – via st.page_link (inactive) ─────── */
@@ -98,42 +133,47 @@ def render_sidebar():
         display: flex !important;
         align-items: center !important;
         gap: 0.6rem !important;
-        padding: 0.55rem 0.9rem !important;
-        border-radius: 9px !important;
+        padding: 0.6rem 0.9rem !important;
+        border-radius: 8px !important;
         text-decoration: none !important;
         background: transparent !important;
-        border: none !important;
-        color: #A0A0A0 !important;
-        font-size: 0.88rem !important;
-        font-weight: 500 !important;
-        transition: background 0.2s ease, color 0.2s ease !important;
+        border: 1px solid transparent !important;
+        color: #4a423a !important;
+        font-size: 0.9rem !important;
+        font-family: 'Manrope', sans-serif !important;
+        font-weight: 600 !important;
+        transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
     }
     div[data-testid="stPageLink"] a:hover {
-        background: rgba(255,255,255,0.05) !important;
-        color: #FFFFFF !important;
+        background: #FFFFFF !important;
+        border-color: #9a9088 !important;
+        color: #C2652A !important;
+        transform: translateX(2px) !important;
+        box-shadow: 0 1px 3px rgba(38,33,28,0.04) !important;
     }
     div[data-testid="stPageLink"] p {
         color: inherit !important;
-        font-size: 0.88rem !important;
+        font-size: 0.9rem !important;
         margin: 0 !important;
     }
 
-    /* ── Active nav item – rendered as HTML anchor ───── */
+    /* ── Active nav item – rendered as HTML element ──── */
     .sb-active-link {
         display: flex;
         align-items: center;
         gap: 0.6rem;
-        padding: 0.55rem 0.9rem;
-        border-radius: 9px;
-        background-color: #FFC107;
-        color: #0D0D0D !important;
-        font-size: 0.88rem;
+        padding: 0.6rem 0.9rem;
+        border-radius: 8px;
+        background-color: #C2652A;
+        color: #FFFFFF !important;
+        font-size: 0.9rem;
         font-weight: 700;
         text-decoration: none;
         cursor: default;
-        pointer-events: none;       /* active page, disable click */
+        pointer-events: none;
         margin-bottom: 0.35rem;
-        font-family: 'Inter', sans-serif;
+        font-family: 'Manrope', sans-serif;
+        box-shadow: 0 2px 6px rgba(194, 101, 42, 0.25);
     }
 
     /* ── Nav list wrapper ────────────────────────────── */
@@ -148,46 +188,7 @@ def render_sidebar():
     .sb-footer {
         margin-top: auto;
         padding-top: 1rem;
-        border-top: 1px solid rgba(255,255,255,0.06);
-    }
-
-    /* ── Body typography & helpers ───────────────────── */
-    h1, h2, h3, h4, h5, h6 {
-        font-family: 'Outfit', sans-serif !important;
-        font-weight: 700 !important;
-        color: #FFFFFF !important;
-    }
-    .accent-text  { color: #FFC107 !important; }
-    .secondary-text { color: #A0A0A0 !important; }
-
-    /* Premium card */
-    .premium-card {
-        background-color: #161616 !important;
-        border: 1px solid rgba(255,255,255,0.06) !important;
-        border-radius: 14px !important;
-        padding: 1.6rem !important;
-        margin-bottom: 1.2rem !important;
-        transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.25s ease !important;
-    }
-    .premium-card:hover {
-        border-color: rgba(255,193,7,0.35) !important;
-        box-shadow: 0 6px 28px rgba(255,193,7,0.08) !important;
-        transform: translateY(-2px);
-    }
-
-    /* Buttons */
-    .stButton > button {
-        background-color: transparent !important;
-        color: #A0A0A0 !important;
-        border: 1px solid rgba(255,255,255,0.1) !important;
-        border-radius: 8px !important;
-        font-weight: 600 !important;
-        transition: all 0.25s ease !important;
-    }
-    .stButton > button:hover {
-        background-color: rgba(255,193,7,0.12) !important;
-        color: #FFC107 !important;
-        border-color: rgba(255,193,7,0.4) !important;
+        border-top: 1px solid #E8DFD5;
     }
     </style>
     """
@@ -200,9 +201,10 @@ def render_sidebar():
             """
             <div class="sb-header">
                 <div class="sb-logo-row">
-                    <span class="sb-title">UpCareer AI</span>
+                    <span class="sb-title">UpCareer <span>AI</span></span>
                 </div>
-                <div class="sb-subtitle">Career guidance engine</div>
+                <div class="sb-badge">Career Engine</div>
+                <div class="sb-subtitle">Precision guidance platform</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -213,7 +215,6 @@ def render_sidebar():
         for p in pages:
             is_active = active_basename == os.path.basename(p["path"])
             if is_active:
-                # Render active item as a styled HTML element (no click needed)
                 st.markdown(
                     f'<span class="sb-active-link">{p["label"]}</span>',
                     unsafe_allow_html=True,

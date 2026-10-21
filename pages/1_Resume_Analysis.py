@@ -2,6 +2,7 @@ import streamlit as st
 import google.generativeai as genai
 import json
 from utils.sidebar import render_sidebar
+from utils.sahara_theme import apply_sahara_theme
 
 st.set_page_config(
     page_title="UpCareer AI - Resume Analysis",
@@ -9,20 +10,14 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+apply_sahara_theme()
 render_sidebar()
 
 st.markdown("""
-<div style='padding:2rem 0 1.4rem 0;border-bottom:1px solid rgba(255,255,255,0.06);margin-bottom:1.8rem;'>
-    <div style='display:inline-flex;align-items:center;gap:0.4rem;background:rgba(255,193,7,0.10);
-        border:1px solid rgba(255,193,7,0.25);border-radius:20px;padding:0.22rem 0.75rem;
-        font-size:0.8rem;font-weight:600;color:#FFC107;margin-bottom:0.6rem;'>
-        Resume Intelligence & Parsing Engine
-    </div>
-    <div style='font-family:Outfit,sans-serif;font-size:2rem;font-weight:800;color:#FFFFFF;
-        letter-spacing:-0.5px;margin:0 0 0.4rem 0;'>
-        Resume Analysis
-    </div>
-    <div style='font-size:0.84rem;color:#888;max-width:650px;line-height:1.6;'>
+<div class="sahara-header">
+    <div class="sahara-pill">Resume Intelligence & Parsing Engine</div>
+    <div class="sahara-title">Resume Analysis</div>
+    <div class="sahara-subtitle">
         Upload your resume and map it against target industry requirements. State is fully persistent across pages.
     </div>
 </div>
@@ -38,7 +33,10 @@ genai.configure(api_key=api_key)
 col_left, col_right = st.columns([1.1, 1], gap="large")
 
 with col_left:
-    st.markdown("<div style='font-family:Outfit,sans-serif;font-size:1.1rem;font-weight:700;color:#FFFFFF;margin-bottom:0.8rem;'>Upload your resume</div>", unsafe_allow_html=True)
+    st.markdown("""
+    <div class="sahara-card">
+        <div style="font-family:'EB Garamond',serif;font-size:1.4rem;font-weight:600;color:#26211C;margin-bottom:0.8rem;">Upload Resume</div>
+    """, unsafe_allow_html=True)
     
     uploaded_file = st.file_uploader("Upload PDF or TXT resume", type=["pdf", "txt"], label_visibility="collapsed")
     
@@ -63,24 +61,26 @@ with col_left:
         
     elif "resume_filename" in st.session_state:
         st.markdown(
-            f"<div style='background:#1a2e22;border:1px solid #285430;border-radius:10px;padding:0.75rem 1rem;margin-bottom:1.0rem;'>"
-            f"<span style='color:#48C78E;font-weight:600;font-size:0.85rem;'>Currently loaded:</span><br>"
-            f"<span style='color:#FFFFFF;font-weight:700;font-size:0.9rem;'>{st.session_state['resume_filename']}</span>"
-            f"</div>",
+            f"""
+            <div style='background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:0.75rem 1rem;margin-bottom:1rem;'>
+                <span style='color:#166534;font-weight:700;font-size:0.82rem;font-family:\"JetBrains Mono\",monospace;letter-spacing:0.04em;text-transform:uppercase;'>Currently Loaded:</span><br>
+                <span style='color:#26211C;font-weight:700;font-size:0.95rem;'>{st.session_state['resume_filename']}</span>
+            </div>
+            """,
             unsafe_allow_html=True
         )
 
-    st.markdown("<div style='font-family:Outfit,sans-serif;font-size:1rem;font-weight:700;color:#FFFFFF;margin:1.2rem 0 0.5rem 0;'>EXTRACTED RESUME TEXT (EDITABLE)</div>", unsafe_allow_html=True)
+    st.markdown("<div class='sahara-sublabel' style='margin:1.2rem 0 0.5rem 0;'>EXTRACTED RESUME TEXT (EDITABLE)</div>", unsafe_allow_html=True)
     
     editable_resume_text = st.text_area(
         "Edit text if needed",
         value=st.session_state.get("resume_text", ""),
-        height=320,
+        height=280,
         label_visibility="collapsed"
     )
     st.session_state["resume_text"] = editable_resume_text
 
-    st.markdown("<div style='font-family:Outfit,sans-serif;font-size:1rem;font-weight:700;color:#FFFFFF;margin:1.2rem 0 0.5rem 0;'>BIAS & FAIRNESS AUDIT (Stage 6)</div>", unsafe_allow_html=True)
+    st.markdown("<div class='sahara-sublabel' style='margin:1.4rem 0 0.5rem 0;'>BIAS & FAIRNESS AUDIT</div>", unsafe_allow_html=True)
     if st.button("Run Fairness Audit", use_container_width=True):
         resume_content = st.session_state.get("resume_text", "").lower()
         if not resume_content.strip():
@@ -89,13 +89,18 @@ with col_left:
             bias_terms = ["he", "she", "his", "hers", "white", "black", "asian", "christian", "muslim", "older", "younger", "married", "single", "father", "mother", "maternity"]
             found_flags = [t for t in bias_terms if f" {t} " in f" {resume_content} " or f" {t}." in f" {resume_content} " or f" {t}," in f" {resume_content} "]
             if found_flags:
-                st.markdown(f"<div style='background:rgba(255,82,82,0.1); border:1px solid #FF5252; border-radius:8px; padding:1rem;'><strong style='color:#FF5252;'>Audit Flagged:</strong> Potential demographic proxy phrases detected ({', '.join(found_flags)}). Consider removing them for unbiased evaluation.</div>", unsafe_allow_html=True)
+                st.markdown(f"<div style='background:#FEF2F2; border:1.5px solid #FECACA; border-radius:8px; padding:1rem;'><strong style='color:#991B1B;'>Audit Flagged:</strong> Potential demographic proxy phrases detected ({', '.join(found_flags)}). Consider removing them for unbiased evaluation.</div>", unsafe_allow_html=True)
             else:
-                st.markdown("<div style='background:rgba(72,199,142,0.1); border:1px solid #48C78E; border-radius:8px; padding:1rem;'><strong style='color:#48C78E;'>Audit Passed:</strong> Clean compliance badge earned! No obvious demographic proxies detected.</div>", unsafe_allow_html=True)
+                st.markdown("<div style='background:#F0FDF4; border:1.5px solid #BBF7D0; border-radius:8px; padding:1rem;'><strong style='color:#166534;'>Audit Passed:</strong> Clean compliance badge earned. No obvious demographic proxies detected.</div>", unsafe_allow_html=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 
 with col_right:
-    st.markdown("<div style='font-family:Outfit,sans-serif;font-size:1.1rem;font-weight:700;color:#FFFFFF;margin-bottom:0.8rem;'>Target role</div>", unsafe_allow_html=True)
+    st.markdown("""
+    <div class="sahara-card">
+        <div style="font-family:'EB Garamond',serif;font-size:1.4rem;font-weight:600;color:#26211C;margin-bottom:0.8rem;">Target Career Configuration</div>
+    """, unsafe_allow_html=True)
     
     roles_list = [
         "Software Engineer",
@@ -114,16 +119,19 @@ with col_right:
     except ValueError:
         default_index = 0
         
+    st.markdown("<div class='sahara-sublabel' style='margin-bottom:0.4rem;'>TARGET ROLE</div>", unsafe_allow_html=True)
     selected_role = st.selectbox("Select Target Role", roles_list, index=default_index, label_visibility="collapsed")
     st.session_state["target_role"] = selected_role
 
-    st.markdown("<div style='font-family:Outfit,sans-serif;font-size:1rem;font-weight:700;color:#FFFFFF;margin:1.5rem 0 0.5rem 0;'>JOB DESCRIPTION (optional)</div>", unsafe_allow_html=True)
-    job_desc = st.text_area("Paste specific job description", height=160, placeholder="Paste a specific job posting to match against it instead of the generic role template.", label_visibility="collapsed")
+    st.markdown("<div class='sahara-sublabel' style='margin:1.4rem 0 0.4rem 0;'>JOB DESCRIPTION (OPTIONAL)</div>", unsafe_allow_html=True)
+    job_desc = st.text_area("Paste specific job description", height=180, placeholder="Paste a specific job posting to match against it instead of the generic role template.", label_visibility="collapsed")
     st.session_state["job_description"] = job_desc
 
     st.markdown("<div style='height:1.2rem;'></div>", unsafe_allow_html=True)
     
-    analyze_btn = st.button("Analyze resume", use_container_width=True, type="primary")
+    analyze_btn = st.button("Analyze Resume", use_container_width=True, type="primary")
+
+    st.markdown("</div>", unsafe_allow_html=True)
 
 if analyze_btn:
     if not st.session_state.get("resume_text", "").strip():
